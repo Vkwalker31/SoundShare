@@ -1,0 +1,37 @@
+name: soundshare
+
+x-oracle-healthcheck: &oracle-healthcheck
+  test: ["CMD", "healthcheck.sh"]
+  interval: 10s
+  timeout: 5s
+  retries: 10
+  start_period: 5m
+
+services:
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    container_name: soundshare-oracle
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?ORACLE_PASSWORD is not set - copy .env.example to .env}
+    ports:
+      - "127.0.0.1:${ORACLE_PORT:-1521}:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck: *oracle-healthcheck
+    restart: unless-stopped
+
+  oracle-xe21:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: soundshare-oracle-xe21
+    profiles: ["compat"]
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?ORACLE_PASSWORD is not set - copy .env.example to .env}
+    ports:
+      - "127.0.0.1:${ORACLE_XE21_PORT:-1522}:1521"
+    volumes:
+      - oracle-xe21-data:/opt/oracle/oradata
+    healthcheck: *oracle-healthcheck
+
+volumes:
+  oracle-data:
+  oracle-xe21-data: 
