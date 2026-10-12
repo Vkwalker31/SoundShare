@@ -136,3 +136,44 @@ CREATE TABLE playlist_tracks (
     CONSTRAINT ck_playlist_tracks_pinned   CHECK (pinned_at IS NULL OR pinned_at >= added_at),
     CONSTRAINT ck_playlist_tracks_position CHECK (position IS NULL OR position >= 1)
 );
+
+CREATE TABLE track_votes (
+    playlist_track_id  NUMBER(19)    NOT NULL,
+    user_id            NUMBER(19)    NOT NULL,
+    vote_value         NUMBER(1)     NOT NULL,
+    voted_at           TIMESTAMP(6)  DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    CONSTRAINT pk_track_votes       PRIMARY KEY (playlist_track_id, user_id),
+    CONSTRAINT ck_track_votes_value CHECK (vote_value IN (-1, 1))
+);
+
+CREATE TABLE skip_votes (
+    playlist_track_id  NUMBER(19)    NOT NULL,
+    user_id            NUMBER(19)    NOT NULL,
+    created_at         TIMESTAMP(6)  DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    CONSTRAINT pk_skip_votes PRIMARY KEY (playlist_track_id, user_id)
+);
+
+CREATE TABLE audit_logs (
+    id              NUMBER(19)          GENERATED ALWAYS AS IDENTITY,
+    created_at      TIMESTAMP(6)        DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    source          VARCHAR2(8 BYTE)    NOT NULL,
+    user_id         NUMBER(19),
+    action          VARCHAR2(64 BYTE)   NOT NULL,
+    entity_type     VARCHAR2(64 BYTE),
+    entity_id       VARCHAR2(64 BYTE),
+    http_method     VARCHAR2(10 BYTE),
+    path            VARCHAR2(512 CHAR),
+    status_code     NUMBER(3),
+    ip_address      VARCHAR2(45 BYTE),
+    user_agent      VARCHAR2(512 CHAR),
+    correlation_id  VARCHAR2(64 BYTE),
+    duration_ms     NUMBER(10),
+    details         CLOB,
+    CONSTRAINT pk_audit_logs          PRIMARY KEY (id),
+    CONSTRAINT ck_audit_logs_source   CHECK (source IN ('HTTP', 'HUB', 'DOMAIN', 'SYSTEM')),
+    CONSTRAINT ck_audit_logs_http     CHECK (source <> 'HTTP'
+                                             OR (http_method IS NOT NULL AND path IS NOT NULL AND status_code IS NOT NULL)),
+    CONSTRAINT ck_audit_logs_status   CHECK (status_code IS NULL OR status_code BETWEEN 100 AND 599),
+    CONSTRAINT ck_audit_logs_duration CHECK (duration_ms IS NULL OR duration_ms >= 0),
+    CONSTRAINT ck_audit_logs_details  CHECK (details IS JSON STRICT)
+);
