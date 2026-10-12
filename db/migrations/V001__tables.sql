@@ -38,3 +38,36 @@ CREATE TABLE refresh_tokens (
     CONSTRAINT ck_refresh_tokens_revoked    CHECK (revoked_at IS NULL OR revoked_at >= created_at),
     CONSTRAINT ck_refresh_tokens_not_self   CHECK (replaced_by_token_id IS NULL OR replaced_by_token_id <> id)
 );
+
+CREATE TABLE artists (
+    id          NUMBER(19)          GENERATED ALWAYS AS IDENTITY,
+    name        VARCHAR2(200 CHAR)  NOT NULL,
+    created_at  TIMESTAMP(6)        DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    CONSTRAINT pk_artists      PRIMARY KEY (id),
+    CONSTRAINT ck_artists_name CHECK (TRIM(name) IS NOT NULL)
+);
+
+CREATE TABLE tracks (
+    id                  NUMBER(19)          GENERATED ALWAYS AS IDENTITY,
+    title               VARCHAR2(300 CHAR)  NOT NULL,
+    duration_sec        NUMBER(6)           NOT NULL,
+    external_source     VARCHAR2(16 BYTE)   DEFAULT ON NULL 'YOUTUBE',
+    external_source_id  VARCHAR2(64 BYTE)   NOT NULL,
+    created_at          TIMESTAMP(6)        DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    CONSTRAINT pk_tracks             PRIMARY KEY (id),
+    CONSTRAINT uq_tracks_external    UNIQUE (external_source, external_source_id),
+    CONSTRAINT ck_tracks_title       CHECK (TRIM(title) IS NOT NULL),
+    CONSTRAINT ck_tracks_duration    CHECK (duration_sec > 0),
+    CONSTRAINT ck_tracks_source      CHECK (external_source IN ('YOUTUBE')),
+    CONSTRAINT ck_tracks_youtube_id  CHECK (external_source <> 'YOUTUBE'
+                                            OR REGEXP_LIKE(external_source_id, '^[A-Za-z0-9_-]{11}$'))
+);
+
+CREATE TABLE track_artists (
+    track_id      NUMBER(19)  NOT NULL,
+    artist_id     NUMBER(19)  NOT NULL,
+    artist_order  NUMBER(2)   NOT NULL,
+    CONSTRAINT pk_track_artists       PRIMARY KEY (track_id, artist_id),
+    CONSTRAINT uq_track_artists_order UNIQUE (track_id, artist_order),
+    CONSTRAINT ck_track_artists_order CHECK (artist_order >= 1)
+);
