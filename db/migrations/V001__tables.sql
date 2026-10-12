@@ -1,18 +1,7 @@
--- =============================================================================
 -- V001__tables.sql
--- Purpose : create SoundShare tables with PRIMARY KEY, UNIQUE, CHECK and DEFAULT
--- Run as  : SOUNDSHARE (schema owner), PDB FREEPDB1 / XEPDB1
--- Notes   : foreign keys -> V002, indexes -> V003 (spec: docs/02-data-model.md)
---           Oracle 19c+ syntax only: no IF [NOT] EXISTS, no BOOLEAN, no JSON type
--- =============================================================================
+-- Tables with PK, UNIQUE, CHECK and DEFAULT. FKs in V002, indexes in V003.
+-- Run as SOUNDSHARE. Oracle 19c+ syntax only.
 
-
--- -----------------------------------------------------------------------------
--- Block 1. Identity: ROLES, USERS, REFRESH_TOKENS
--- -----------------------------------------------------------------------------
-
--- Static dictionary of system roles. IDs are fixed (1 = Admin, 2 = User),
--- so no identity column: seed data must be able to insert explicit keys (DM-05).
 CREATE TABLE roles (
     id    NUMBER(5)          NOT NULL,
     name  VARCHAR2(32 CHAR)  NOT NULL,
@@ -20,8 +9,6 @@ CREATE TABLE roles (
     CONSTRAINT uq_roles_name UNIQUE (name)
 );
 
--- User accounts. Case-insensitive uniqueness of USERNAME/EMAIL is enforced
--- by function-based unique indexes in V003.
 CREATE TABLE users (
     id             NUMBER(19)          GENERATED ALWAYS AS IDENTITY,
     username       VARCHAR2(32 CHAR)   NOT NULL,
@@ -36,8 +23,6 @@ CREATE TABLE users (
     CONSTRAINT ck_users_email     CHECK (INSTR(email, '@') > 1)
 );
 
--- Refresh-token sessions. Only the SHA-256 hash of the token is stored (FR-AUTH-04).
--- REPLACED_BY_TOKEN_ID links the rotation chain (FR-AUTH-05/06).
 CREATE TABLE refresh_tokens (
     id                    NUMBER(19)         GENERATED ALWAYS AS IDENTITY,
     user_id               NUMBER(19)         NOT NULL,

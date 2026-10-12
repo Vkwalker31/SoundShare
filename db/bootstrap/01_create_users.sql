@@ -1,10 +1,7 @@
--- =============================================================================
--- db/bootstrap/01_create_users.sql
--- Purpose : create schema owner (SOUNDSHARE) and application user (SOUNDSHARE_APP)
--- Run as  : SYSTEM, connected to the PDB (FREEPDB1 on 23ai/26ai, XEPDB1 on XE 21)
--- Client  : SQL*Plus / SQLcl (uses ACCEPT ... HIDE)
--- Re-run  : safe - existing users are kept, quota and privileges are re-applied
--- =============================================================================
+-- 01_create_users.sql
+-- Creates schema owner SOUNDSHARE and application user SOUNDSHARE_APP. Idempotent.
+-- Run as SYSTEM in the PDB (FREEPDB1 / XEPDB1) with SQL*Plus or SQLcl.
+
 WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
 SET VERIFY OFF
 SET SERVEROUTPUT ON
@@ -34,11 +31,9 @@ BEGIN
 END;
 /
 
--- Schema owner: creates and owns all objects; never used by the application at runtime
 ALTER USER soundshare QUOTA UNLIMITED ON users;
 GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE VIEW, CREATE PROCEDURE TO soundshare;
 
--- Application user: connect only; object privileges come from the owner (migration V005)
 GRANT CREATE SESSION TO soundshare_app;
 
 UNDEFINE owner_password
