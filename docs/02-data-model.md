@@ -363,10 +363,10 @@ Seed: `(1, 'Admin')`, `(2, 'User')`.
 | Колонка | Тип | NN | D | Ограничения | C# |
 |---|---|:-:|---|---|---|
 | ID | NUMBER(19) IDENTITY | ✔ | — | PK | `long` |
-| NAME | VARCHAR2(100 CHAR) | ✔ | — | — | `string` |
+| NAME | VARCHAR2(100 CHAR) | ✔ | — | CK `TRIM(NAME) IS NOT NULL` | `string` |
 | ROOM_ID | NUMBER(19) | | — | FK → ROOMS; UQ | `long?` |
 | OWNER_ID | NUMBER(19) | | — | FK → USERS | `long?` |
-| QUEUE_VERSION | NUMBER(19) | ✔ | 0 | concurrency token (DM-10) | `long` |
+| QUEUE_VERSION | NUMBER(19) | ✔ | 0 | CK `>= 0`; concurrency token (DM-10) | `long` |
 | CREATED_AT | TIMESTAMP(6) | ✔ | UTC_NOW | — | `DateTime` |
 
 Табличное ограничение `CK_PLAYLISTS_ARC` — исключающая дуга (DM-03).
@@ -380,8 +380,8 @@ Seed: `(1, 'Admin')`, `(2, 'User')`.
 | ADDED_BY_ID | NUMBER(19) | ✔ | — | FK → USERS | `long` |
 | ADDED_AT | TIMESTAMP(6) | ✔ | UTC_NOW | — | `DateTime` |
 | STATUS | VARCHAR2(16) | ✔ | `'QUEUED'` | CK IN ('QUEUED','PLAYING','PLAYED','SKIPPED','REMOVED','AUTO_REMOVED') | `enum QueueItemStatus` |
-| PINNED_AT | TIMESTAMP(6) | | — | — | `DateTime?` |
-| STARTED_AT | TIMESTAMP(6) | | — | CK `STATUS <> 'PLAYING' OR STARTED_AT IS NOT NULL` | `DateTime?` |
+| PINNED_AT | TIMESTAMP(6) | | — | CK `PINNED_AT IS NULL OR PINNED_AT >= ADDED_AT` | `DateTime?` |
+| STARTED_AT | TIMESTAMP(6) | | — | CK: заполнено ровно у `PLAYING`, `PLAYED`, `SKIPPED`; пусто у `QUEUED`, `REMOVED`, `AUTO_REMOVED` | `DateTime?` |
 | POSITION | NUMBER(6) | | — | CK `POSITION IS NULL OR POSITION >= 1`; уникальность в плейлисте — DM-12 | `int?` |
 
 Жизненный цикл `STATUS`:
