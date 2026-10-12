@@ -274,7 +274,7 @@ erDiagram
 | ID | NUMBER(5) | ✔ | — | PK (без identity, DM-05) | `int` |
 | NAME | VARCHAR2(32 CHAR) | ✔ | — | UQ | `string` |
 
-Seed: `(1, 'Admin')`, `(2, 'User')`.
+Строки `(1, 'Admin')`, `(2, 'User')` — справочные данные схемы, создаются миграцией `V006__reference_data.sql`.
 
 ### 4.2 `USERS`
 | Колонка | Тип | NN | D | Ограничения | C# |
