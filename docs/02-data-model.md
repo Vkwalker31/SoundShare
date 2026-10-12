@@ -415,19 +415,19 @@ QUEUED ──► PLAYING ──► PLAYED      (дослушан, автопер
 |---|---|:-:|---|---|---|
 | ID | NUMBER(19) IDENTITY | ✔ | — | PK | `long` |
 | CREATED_AT | TIMESTAMP(6) | ✔ | UTC_NOW | — | `DateTime` |
-| SOURCE | VARCHAR2(8) | ✔ | — | CK IN ('HTTP','HUB','DOMAIN','SYSTEM') | `enum AuditSource` |
+| SOURCE | VARCHAR2(8) | ✔ | — | CK IN ('HTTP','HUB','DOMAIN','SYSTEM'); для `HTTP` обязательны метод, путь и код ответа | `enum AuditSource` |
 | USER_ID | NUMBER(19) | | — | FK → USERS **ON DELETE SET NULL** | `long?` |
 | ACTION | VARCHAR2(64) | ✔ | — | — (`'Room.Join'`, `'Auth.LoginFailed'`…) | `string` |
 | ENTITY_TYPE | VARCHAR2(64) | | — | — | `string?` |
 | ENTITY_ID | VARCHAR2(64) | | — | — | `string?` |
 | HTTP_METHOD | VARCHAR2(10) | | — | — | `string?` |
 | PATH | VARCHAR2(512 CHAR) | | — | — | `string?` |
-| STATUS_CODE | NUMBER(3) | | — | — | `int?` |
+| STATUS_CODE | NUMBER(3) | | — | CK `BETWEEN 100 AND 599` | `int?` |
 | IP_ADDRESS | VARCHAR2(45) | | — | — | `string?` |
 | USER_AGENT | VARCHAR2(512 CHAR) | | — | — | `string?` |
 | CORRELATION_ID | VARCHAR2(64) | | — | — | `string?` |
 | DURATION_MS | NUMBER(10) | | — | CK `>= 0` | `int?` |
-| DETAILS | CLOB | | — | CK `DETAILS IS JSON` | `string?` |
+| DETAILS | CLOB | | — | CK `DETAILS IS JSON STRICT` | `string?` |
 
 HTTP-поля nullable, потому что у записей `SOURCE = 'DOMAIN' / 'SYSTEM'` (например, автозакрытие комнаты фоновой службой) HTTP-контекста нет.
 
