@@ -78,7 +78,6 @@ erDiagram
         NUMBER DURATION_SEC
         VARCHAR2 EXTERNAL_SOURCE UK "UK вместе с SOURCE_ID"
         VARCHAR2 EXTERNAL_SOURCE_ID UK
-        VARCHAR2 THUMBNAIL_URL
         TIMESTAMP CREATED_AT
     }
     TRACK_ARTISTS {
@@ -240,6 +239,10 @@ erDiagram
 - **`AUDIT_LOGS.IP_ADDRESS`, `USER_AGENT`, `DETAILS` — тоже персональные данные** по GDPR. Но у прикладного пользователя БД нет права `UPDATE` на `AUDIT_LOGS` (FR-AUD-05). Решение: хранимая процедура схемы-владельца с правами определителя (*definer's rights*), а приложению выдаётся только `EXECUTE`. Приложение может обезличить записи аудита, но не может их произвольно править.
 - Ограничение stateless JWT: выданный Access Token живёт до 15 мин (FR-AUTH-08). Активные SignalR-соединения пользователя принудительно закрываются.
 
+### DM-14. Обложка трека не хранится
+- `THUMBNAIL_URL` однозначно вычисляется из ID видео: `https://i.ytimg.com/vi/{EXTERNAL_SOURCE_ID}/hqdefault.jpg`. Хранение даёт транзитивную зависимость `ID → EXTERNAL_SOURCE_ID → THUMBNAIL_URL` (нарушение 3NF) и риск рассинхронизации. URL строит приложение (свойство DTO).
+- Пустые и состоящие из пробелов названия запрещены через `CHECK (TRIM(x) IS NOT NULL)`: в Oracle `TRIM('   ')` возвращает `NULL`.
+
 ---
 
 ## 3. Соглашения даталогической модели
@@ -310,12 +313,13 @@ Seed: `(1, 'Admin')`, `(2, 'User')`.
 | Колонка | Тип | NN | D | Ограничения | C# |
 |---|---|:-:|---|---|---|
 | ID | NUMBER(19) IDENTITY | ✔ | — | PK | `long` |
-| TITLE | VARCHAR2(300 CHAR) | ✔ | — | — | `string` |
+| TITLE | VARCHAR2(300 CHAR) | ✔ | — | CK `TRIM(TITLE) IS NOT NULL` | `string` |
 | DURATION_SEC | NUMBER(6) | ✔ | — | CK `> 0` (исключает live-трансляции с нулевой длительностью) | `int` |
 | EXTERNAL_SOURCE | VARCHAR2(16) | ✔ | `'YOUTUBE'` | CK IN ('YOUTUBE') | `enum TrackSource` |
-| EXTERNAL_SOURCE_ID | VARCHAR2(64) | ✔ | — | UQ (EXTERNAL_SOURCE, EXTERNAL_SOURCE_ID) | `string` |
-| THUMBNAIL_URL | VARCHAR2(500 CHAR) | | — | — | `string?` |
+| EXTERNAL_SOURCE_ID | VARCHAR2(64) | ✔ | — | UQ (EXTERNAL_SOURCE, EXTERNAL_SOURCE_ID); для YouTube CK `^[A-Za-z0-9_-]{11}$` | `string` |
 | CREATED_AT | TIMESTAMP(6) | ✔ | UTC_NOW | — | `DateTime` |
+
+Обложка не хранится (DM-14): её URL вычисляется из ID видео.
 
 ### 4.6 `TRACK_ARTISTS`
 | Колонка | Тип | NN | D | Ограничения | C# |
