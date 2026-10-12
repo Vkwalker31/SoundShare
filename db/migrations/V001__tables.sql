@@ -102,3 +102,37 @@ CREATE TABLE room_members (
     CONSTRAINT ck_room_members_ban  CHECK (banned_until IS NULL
                                            OR (left_at IS NOT NULL AND banned_until > left_at))
 );
+
+CREATE TABLE playlists (
+    id             NUMBER(19)          GENERATED ALWAYS AS IDENTITY,
+    name           VARCHAR2(100 CHAR)  NOT NULL,
+    room_id        NUMBER(19),
+    owner_id       NUMBER(19),
+    queue_version  NUMBER(19)          DEFAULT ON NULL 0,
+    created_at     TIMESTAMP(6)        DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    CONSTRAINT pk_playlists         PRIMARY KEY (id),
+    CONSTRAINT uq_playlists_room    UNIQUE (room_id),
+    CONSTRAINT ck_playlists_name    CHECK (TRIM(name) IS NOT NULL),
+    CONSTRAINT ck_playlists_version CHECK (queue_version >= 0),
+    CONSTRAINT ck_playlists_arc     CHECK ((room_id IS NOT NULL AND owner_id IS NULL)
+                                        OR (room_id IS NULL AND owner_id IS NOT NULL))
+);
+
+CREATE TABLE playlist_tracks (
+    id           NUMBER(19)         GENERATED ALWAYS AS IDENTITY,
+    playlist_id  NUMBER(19)         NOT NULL,
+    track_id     NUMBER(19)         NOT NULL,
+    added_by_id  NUMBER(19)         NOT NULL,
+    added_at     TIMESTAMP(6)       DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    status       VARCHAR2(16 BYTE)  DEFAULT ON NULL 'QUEUED',
+    pinned_at    TIMESTAMP(6),
+    started_at   TIMESTAMP(6),
+    position     NUMBER(6),
+    CONSTRAINT pk_playlist_tracks          PRIMARY KEY (id),
+    CONSTRAINT ck_playlist_tracks_status   CHECK (status IN ('QUEUED', 'PLAYING', 'PLAYED',
+                                                         'SKIPPED', 'REMOVED', 'AUTO_REMOVED')),
+    CONSTRAINT ck_playlist_tracks_started  CHECK ((status IN ('PLAYING', 'PLAYED', 'SKIPPED') AND started_at IS NOT NULL)
+                                               OR (status IN ('QUEUED', 'REMOVED', 'AUTO_REMOVED') AND started_at IS NULL)),
+    CONSTRAINT ck_playlist_tracks_pinned   CHECK (pinned_at IS NULL OR pinned_at >= added_at),
+    CONSTRAINT ck_playlist_tracks_position CHECK (position IS NULL OR position >= 1)
+);
