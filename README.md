@@ -2,7 +2,7 @@
 
 Сервис совместного прослушивания музыки: участники комнаты слушают одну очередь синхронно, добавляют треки и голосуют, а очередь перестраивается в реальном времени.
 
-> Статус: в разработке. Готовы ТЗ, модель данных и окружение Oracle; идёт создание схемы БД.
+> Статус: в разработке. Готовы ТЗ, модель данных и схема Oracle с демо-данными и тестами ограничений; следующий шаг — backend.
 
 ## Назначение и пользователи
 
@@ -78,7 +78,16 @@ Clean Architecture: зависимости направлены внутрь, Do
    docker cp db/bootstrap/01_create_users.sql soundshare-oracle:/tmp/
    docker exec -it soundshare-oracle sqlplus system@//localhost:1521/FREEPDB1 @/tmp/01_create_users.sql
    ```
-4. Примените миграции из `db/migrations/` по порядку под пользователем `SOUNDSHARE`.
+4. Примените миграции, загрузите демо-данные и проверьте ограничения схемы (под пользователем `SOUNDSHARE`, пароль из `.env`):
+   ```bash
+   docker cp db soundshare-oracle:/tmp/db
+   docker exec -it -w /tmp/db -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 soundshare-oracle sqlplus soundshare@//localhost:1521/FREEPDB1 @apply_migrations.sql
+   docker exec -it -w /tmp/db soundshare-oracle sqlplus soundshare@//localhost:1521/FREEPDB1 @seed/demo.sql
+   docker exec -it -w /tmp/db soundshare-oracle sqlplus soundshare@//localhost:1521/FREEPDB1 @tests/constraints_test.sql
+   ```
+   Пересоздать схему с нуля: `@reset.sql`, затем снова `@apply_migrations.sql`.
+
+Все демо-пользователи (`admin`, `user_owner`, `user_mod`, `user_1` …) имеют пароль `Demo_Pass1`.
 
 С хоста база доступна на `localhost:${ORACLE_PORT}` (по умолчанию 1521), сервис `FREEPDB1`.
 
@@ -92,7 +101,10 @@ docker compose --profile compat up -d oracle-xe21
 ```
 db/
   bootstrap/    создание пользователей БД
-  migrations/   версионированные скрипты схемы
+  migrations/   версионированные скрипты схемы V001–V006
+  seed/         демо-данные для сценария защиты
+  tests/        тесты ограничений схемы (PASS/FAIL)
+  reset.sql, apply_migrations.sql
 docs/           ТЗ, модель данных, дорожная карта
 ```
 

@@ -37,7 +37,7 @@
 |---|---|---|:-:|:-:|
 | 1 | ТЗ: сущности, функции (авторизация, управление пользователями с группами Admin/User, журналирование) | `docs/01-technical-specification.md` | — | ✅ |
 | 2 | ER-схема, описание сущностей и связей | `docs/02-data-model.md` (+ Crow's Foot в отчёт) | — | ✅ |
-| 3 | Полный набор SQL по созданию схемы | `db/bootstrap/`, `db/migrations/V001…V006`, `db/seed/`, `db/tests/` | M0 | 🟡 |
+| 3 | Полный набор SQL по созданию схемы | `db/bootstrap/`, `db/migrations/V001…V006`, `db/seed/`, `db/tests/` | M0 | ✅ |
 | 4 | DML-запросы с описанием | `db/queries/04-dml.sql`, `docs/04-dml.md` | M2 | ⬜ |
 | 5 | SELECT-запросы с описанием | `db/queries/05-select.sql`, `docs/05-select.md` (очередь с `ROW_NUMBER`, рейтинги `RANK`/`DENSE_RANK`) | M2 | ⬜ |
 | 6 | Запросы журналирования, интерфейсы, проволочные макеты | `db/queries/06-audit.sql`, `docs/06-audit-and-ui.md`, `docs/wireframes/` | M3 | ⬜ |
