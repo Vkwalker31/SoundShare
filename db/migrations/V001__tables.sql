@@ -71,3 +71,34 @@ CREATE TABLE track_artists (
     CONSTRAINT uq_track_artists_order UNIQUE (track_id, artist_order),
     CONSTRAINT ck_track_artists_order CHECK (artist_order >= 1)
 );
+
+CREATE TABLE rooms (
+    id             NUMBER(19)          GENERATED ALWAYS AS IDENTITY,
+    name           VARCHAR2(100 CHAR)  NOT NULL,
+    created_by_id  NUMBER(19)          NOT NULL,
+    is_private     NUMBER(1)           DEFAULT ON NULL 0,
+    invite_code    CHAR(6 BYTE)        NOT NULL,
+    is_active      NUMBER(1)           DEFAULT ON NULL 1,
+    empty_since    TIMESTAMP(6),
+    created_at     TIMESTAMP(6)        DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    CONSTRAINT pk_rooms             PRIMARY KEY (id),
+    CONSTRAINT uq_rooms_invite_code UNIQUE (invite_code),
+    CONSTRAINT ck_rooms_name        CHECK (TRIM(name) IS NOT NULL),
+    CONSTRAINT ck_rooms_is_private  CHECK (is_private IN (0, 1)),
+    CONSTRAINT ck_rooms_is_active   CHECK (is_active IN (0, 1)),
+    CONSTRAINT ck_rooms_invite_code CHECK (REGEXP_LIKE(invite_code, '^[A-HJ-NP-Z2-9]{6}$', 'c'))
+);
+
+CREATE TABLE room_members (
+    room_id       NUMBER(19)         NOT NULL,
+    user_id       NUMBER(19)         NOT NULL,
+    member_role   VARCHAR2(16 BYTE)  DEFAULT ON NULL 'CONTRIBUTOR',
+    joined_at     TIMESTAMP(6)       DEFAULT ON NULL SYS_EXTRACT_UTC(SYSTIMESTAMP),
+    left_at       TIMESTAMP(6),
+    banned_until  TIMESTAMP(6),
+    CONSTRAINT pk_room_members      PRIMARY KEY (room_id, user_id),
+    CONSTRAINT ck_room_members_role CHECK (member_role IN ('OWNER', 'MODERATOR', 'CONTRIBUTOR')),
+    CONSTRAINT ck_room_members_left CHECK (left_at IS NULL OR left_at >= joined_at),
+    CONSTRAINT ck_room_members_ban  CHECK (banned_until IS NULL
+                                           OR (left_at IS NOT NULL AND banned_until > left_at))
+);
