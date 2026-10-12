@@ -1,0 +1,16 @@
+# Store text files with LF in the repository and check them out with LF.
+# Overrides each developer's core.autocrlf, so the result is the same on every machine.
+* text=auto eol=lf
+
+# Windows-only files keep CRLF
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.sln text eol=crlf
+
+# Binary files: no line-ending conversion, no textual diff
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.pdf  binary
+*.docx binary
