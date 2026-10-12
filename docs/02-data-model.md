@@ -498,6 +498,17 @@ HTTP-поля nullable, потому что у записей `SOURCE = 'DOMAIN'
 
 | Индекс | Выражение | Правило |
 |---|---|---|
+| `UX_USERS_USERNAME_CI` | `UPPER(USERNAME)` | Уникальность имени без учёта регистра |
+| `UX_USERS_EMAIL_CI` | `UPPER(EMAIL)` | Уникальность email без учёта регистра |
+| `UX_ARTISTS_NAME_CI` | `UPPER(NAME)` | Уникальность исполнителя без учёта регистра |
+| `UX_ROOM_MEMBERS_ACTIVE_USER` | `CASE WHEN LEFT_AT IS NULL THEN USER_ID END` | Одна активная комната на пользователя (BR-ROOM-06) |
+| `UX_ROOM_MEMBERS_ACTIVE_OWNER` | `CASE WHEN LEFT_AT IS NULL AND MEMBER_ROLE = 'OWNER' THEN ROOM_ID END` | Не более одного активного Owner (DM-01) |
+| `UX_PLAYLIST_TRACKS_PLAYING` | `CASE WHEN STATUS = 'PLAYING' THEN PLAYLIST_ID END` | Одна играющая позиция на очередь (DM-02) |
+| `UX_PLAYLIST_TRACKS_POSITION` | `(CASE WHEN POSITION IS NOT NULL THEN PLAYLIST_ID END, POSITION)` | Уникальная позиция в личном плейлисте (DM-12) |
+
+Для каждого функционального индекса Oracle создаёт скрытую виртуальную колонку `SYS_NC000nn$`; её имя появляется в тексте ошибки `ORA-00001`.
+
+---|---|---|
 | `UX_USERS_USERNAME_CI` | `UPPER(USERNAME)` | Уникальность без учёта регистра |
 | `UX_USERS_EMAIL_CI` | `UPPER(EMAIL)` | — // — |
 | `UX_ARTISTS_NAME_CI` | `UPPER(NAME)` | — // — |
