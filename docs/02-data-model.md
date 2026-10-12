@@ -335,10 +335,10 @@ Seed: `(1, 'Admin')`, `(2, 'User')`.
 | Колонка | Тип | NN | D | Ограничения | C# |
 |---|---|:-:|---|---|---|
 | ID | NUMBER(19) IDENTITY | ✔ | — | PK | `long` |
-| NAME | VARCHAR2(100 CHAR) | ✔ | — | — | `string` |
+| NAME | VARCHAR2(100 CHAR) | ✔ | — | CK `TRIM(NAME) IS NOT NULL` | `string` |
 | CREATED_BY_ID | NUMBER(19) | ✔ | — | FK → USERS | `long` |
 | IS_PRIVATE | NUMBER(1) | ✔ | 0 | CK IN (0,1) | `bool` |
-| INVITE_CODE | CHAR(6) | ✔ | — | UQ; CK `REGEXP_LIKE(INVITE_CODE, '^[A-HJ-NP-Z2-9]{6}$')` | `string` |
+| INVITE_CODE | CHAR(6 BYTE) | ✔ | — | UQ; CK `REGEXP_LIKE(INVITE_CODE, '^[A-HJ-NP-Z2-9]{6}$', 'c')` | `string` |
 | IS_ACTIVE | NUMBER(1) | ✔ | 1 | CK IN (0,1) | `bool` |
 | EMPTY_SINCE | TIMESTAMP(6) | | — | — | `DateTime?` |
 | CREATED_AT | TIMESTAMP(6) | ✔ | UTC_NOW | — | `DateTime` |
@@ -353,7 +353,7 @@ Seed: `(1, 'Admin')`, `(2, 'User')`.
 | MEMBER_ROLE | VARCHAR2(16) | ✔ | `'CONTRIBUTOR'` | CK IN ('OWNER','MODERATOR','CONTRIBUTOR') | `enum RoomRole` |
 | JOINED_AT | TIMESTAMP(6) | ✔ | UTC_NOW | — | `DateTime` |
 | LEFT_AT | TIMESTAMP(6) | | — | CK `LEFT_AT IS NULL OR LEFT_AT >= JOINED_AT` | `DateTime?` |
-| BANNED_UNTIL | TIMESTAMP(6) | | — | CK `BANNED_UNTIL IS NULL OR LEFT_AT IS NOT NULL` (забаненный не может быть активным) | `DateTime?` |
+| BANNED_UNTIL | TIMESTAMP(6) | | — | CK `BANNED_UNTIL IS NULL OR (LEFT_AT IS NOT NULL AND BANNED_UNTIL > LEFT_AT)`: забаненный не может быть активным, бан заканчивается позже исключения | `DateTime?` |
 
 Бан (DM-11): активен, если `BANNED_UNTIL > UTC_NOW`. Бессрочный бан — константа `9999-12-31 00:00:00`.
 
