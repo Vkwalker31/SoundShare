@@ -105,7 +105,7 @@ db/
   seed/         демо-данные для сценария защиты
   tests/        тесты ограничений схемы (PASS/FAIL)
   reset.sql, apply_migrations.sql
-docs/           ТЗ, модель данных, дорожная карта
+docs/           ТЗ, модель данных, требования, тестовая документация
 ```
 
 ## Документация
@@ -113,3 +113,5 @@ docs/           ТЗ, модель данных, дорожная карта
 - [Техническое задание](docs/01-technical-specification.md)
 - [Модель данных](docs/02-data-model.md)
 - [Дорожная карта](docs/00-roadmap.md)
+- Требования: [варианты использования](docs/requirements/use-cases.md) · [диаграммы состояний](docs/requirements/state-diagrams.md) · [матрица верификации](docs/requirements/verification-matrix.md)
+- Тестирование: [план](docs/testing/test-plan.md) · [чек-лист](docs/testing/checklist.md) · [тест-кейсы](docs/testing/test-cases.md) · [дефекты](ISSUES.md)
