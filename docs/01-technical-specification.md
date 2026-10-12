@@ -413,11 +413,13 @@ AuditMiddleware ──TryWrite──► Channel<AuditEntry> (bounded, 10 000)
 | 1 | Утверждённое ТЗ (этот документ v1.0) |
 | 2 | Инфологическая (ER) и даталогическая модели, нормализация |
 | 3 | DDL-скрипты Oracle, ограничения, индексы, seed-данные |
-| 4 | Solution Clean Architecture, Domain + Infrastructure (EF Core, конфигурации, миграции, Repository/UoW) |
-| 5 | Application-слой: CQRS-обработчики, валидация, маппинг |
-| 6 | WebAPI: контроллеры, JWT, SignalR Hub, Audit Middleware |
-| 7 | Аналитические запросы, EXPLAIN PLAN, оптимизация, тесты |
-| 8 | Docker Compose, CI, документация, защита |
+| 4 | DML-запросы с описанием; Domain + Infrastructure (EF Core mapping, Repository/UoW) |
+| 5 | SELECT-запросы с описанием; Application-слой (CQRS-запросы, DTO, маппинг) |
+| 6 | Запросы журналирования, макеты интерфейсов; WebAPI, JWT, SignalR Hub, Audit Middleware, клиент |
+| 7 | Приложение, тестовые данные, отчёт об индексах (EXPLAIN PLAN), тесты и покрытие |
+| 8 | README, руководство пользователя, Docker Compose, CI, защита |
+
+Полная матрица соответствия критериям курсов и темам собеседования — [00-roadmap.md](00-roadmap.md).
 
 ## 9. Порядок контроля и приёмки
 
