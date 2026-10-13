@@ -9,17 +9,18 @@ internal sealed class AuditMiddleware(RequestDelegate next, AuditBuffer buffer, 
     public async Task InvokeAsync(HttpContext context)
     {
         var started = Stopwatch.GetTimestamp();
-        try
-        {
-            await next(context);
-        }
-        finally
+        var endpoint = context.GetEndpoint();
+        var roomId = context.Request.RouteValues.TryGetValue("roomId", out var room) ? room?.ToString() : null;
+        context.Response.OnCompleted(() =>
         {
             if (ShouldAudit(context))
             {
-                buffer.Enqueue(Create(context, Stopwatch.GetElapsedTime(started)));
+                buffer.Enqueue(Create(context, endpoint, roomId, Stopwatch.GetElapsedTime(started)));
             }
-        }
+
+            return Task.CompletedTask;
+        });
+        await next(context);
     }
 
     private static bool ShouldAudit(HttpContext context)
@@ -36,9 +37,8 @@ internal sealed class AuditMiddleware(RequestDelegate next, AuditBuffer buffer, 
             || status is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden;
     }
 
-    private AuditLog Create(HttpContext context, TimeSpan elapsed)
+    private AuditLog Create(HttpContext context, Endpoint? endpoint, string? roomId, TimeSpan elapsed)
     {
-        var endpoint = context.GetEndpoint();
         var status = context.Response.StatusCode;
         var name = endpoint?.Metadata.GetMetadata<AuditActionAttribute>()?.Name
             ?? $"{context.Request.Method} {(endpoint as RouteEndpoint)?.RoutePattern.RawText ?? "unknown"}";
@@ -48,8 +48,6 @@ internal sealed class AuditMiddleware(RequestDelegate next, AuditBuffer buffer, 
         }
 
         var userId = long.TryParse(context.User.FindFirst("sub")?.Value, System.Globalization.CultureInfo.InvariantCulture, out var id) ? id : (long?)null;
-        var roomId = context.Request.RouteValues.TryGetValue("roomId", out var room) ? room?.ToString() : null;
-
         return new AuditLog
         {
             CreatedAt = time.GetUtcNow().UtcDateTime,

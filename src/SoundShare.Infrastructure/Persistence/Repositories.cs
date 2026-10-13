@@ -74,12 +74,17 @@ internal sealed class RoomRepository(SoundShareDbContext db) : IRoomRepository
 
     public async Task<IReadOnlyList<(Room Room, int MembersCount)>> ListPublicAsync(CancellationToken cancellationToken)
     {
-        var rows = await db.Rooms.AsNoTracking()
+        var rooms = await db.Rooms.AsNoTracking()
             .Where(r => r.IsActive && !r.IsPrivate)
             .OrderBy(r => r.Id)
-            .Select(r => new { Room = r, Count = db.RoomMembers.Count(m => m.RoomId == r.Id && m.LeftAt == null) })
             .ToListAsync(cancellationToken);
-        return rows.Select(r => (r.Room, r.Count)).ToList();
+        var ids = rooms.Select(r => r.Id).ToList();
+        var counts = await db.RoomMembers
+            .Where(m => ids.Contains(m.RoomId) && m.LeftAt == null)
+            .GroupBy(m => m.RoomId)
+            .Select(g => new { RoomId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.RoomId, x => x.Count, cancellationToken);
+        return rooms.Select(r => (r, counts.GetValueOrDefault(r.Id))).ToList();
     }
 
     public Task LockAsync(long roomId, CancellationToken cancellationToken) =>

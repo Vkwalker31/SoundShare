@@ -58,7 +58,7 @@ public sealed class SoundShareDbContext(DbContextOptions<SoundShareDbContext> op
     {
         ArgumentNullException.ThrowIfNull(configurationBuilder);
         configurationBuilder.Properties<string>().AreUnicode(false);
-        configurationBuilder.Properties<bool>().HaveConversion<BoolToZeroOneConverter<int>>().HaveColumnType("NUMBER(1)");
+        configurationBuilder.Properties<bool>().HaveColumnType("NUMBER(1)");
         configurationBuilder.Properties<DateTime>().HaveConversion<UtcConverter>().HaveColumnType("TIMESTAMP(6)");
         configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcConverter>().HaveColumnType("TIMESTAMP(6)");
     }
