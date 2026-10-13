@@ -113,5 +113,6 @@ docs/           ТЗ, модель данных, требования, тест�
 - [Техническое задание](docs/01-technical-specification.md)
 - [Модель данных](docs/02-data-model.md)
 - [Дорожная карта](docs/00-roadmap.md)
+- [Контракт REST API](docs/api/endpoints.md)
 - Требования: [варианты использования](docs/requirements/use-cases.md) · [диаграммы состояний](docs/requirements/state-diagrams.md) · [матрица верификации](docs/requirements/verification-matrix.md)
 - Тестирование: [план](docs/testing/test-plan.md) · [чек-лист](docs/testing/checklist.md) · [тест-кейсы](docs/testing/test-cases.md) · [дефекты](ISSUES.md)

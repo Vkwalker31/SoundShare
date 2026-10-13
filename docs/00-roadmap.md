@@ -60,7 +60,7 @@
 | ≥ 5 пользовательских требований + use case диаграммы | ТЗ §3.4 (UC-01…UC-21) + `docs/requirements/use-cases.md`: 8 пользовательских требований, 5 диаграмм (Mermaid) | ✅ |
 | ≥ 15 функциональных, ≥ 5 нефункциональных | ТЗ §5, §6 | ✅ |
 | Способ проверки каждого требования; непроверяемые — переписать | `docs/requirements/verification-matrix.md`: 99 требований, 4 переписаны | ✅ |
-| Сверка с приложением, дефекты | `ISSUES.md`: 7 дефектов верификации документов и схемы; сверка с приложением — M3 | 🟡 |
+| Сверка с приложением, дефекты | `ISSUES.md`: 8 дефектов верификации документов и схемы; сверка с приложением — M3 | 🟡 |
 | Диаграмма состояний | `docs/requirements/state-diagrams.md`: позиция очереди (`QUEUED → PLAYING → PLAYED/SKIPPED`, `QUEUED → REMOVED/AUTO_REMOVED`), комната (Active → Empty → Closed), участник комнаты | ✅ |
 
 ### 3.2 Задание 2 — автотесты (M2)
@@ -163,7 +163,7 @@
 | Тема | Где в SoundShare |
 |---|---|
 | REST, URI | `/api/rooms/{roomId}/queue/items/{itemId}/vote` |
-| Методы | `PUT …/vote` (идемпотентно), `PATCH …/pin`, `DELETE …/items/{id}`, `POST /api/rooms` |
+| Методы | `PUT …/vote` (идемпотентно), `PUT`/`DELETE …/pin`, `DELETE …/items/{id}`, `POST /api/rooms` |
 | Коды | 200/201 (+`Location`)/204, 400/401/403/404, 409, 422, 429 |
 | Заголовки | `Authorization`, `Set-Cookie` HttpOnly, `ETag`/`If-Match`, `Retry-After`, `X-Correlation-Id` |
 
