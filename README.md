@@ -2,7 +2,7 @@
 
 Сервис совместного прослушивания музыки: участники комнаты слушают одну очередь синхронно, добавляют треки и голосуют, а очередь перестраивается в реальном времени.
 
-> Статус: в разработке. Готовы ТЗ, модель данных и схема Oracle с демо-данными и тестами ограничений; следующий шаг — backend.
+> Статус: в разработке. Готовы ТЗ, модель данных, схема Oracle с демо-данными и тестами ограничений, REST API с SignalR-хабом и юнит-тесты домена; в работе — тесты Application, интеграционные тесты и клиент Blazor.
 
 ## Назначение и пользователи
 
@@ -18,7 +18,9 @@
 | Доступ к данным | Entity Framework Core (Oracle.EntityFrameworkCore), SQL-миграции |
 | База данных | Oracle Database 23ai Free; скрипты совместимы с 19c/21c |
 | Клиент | Blazor WebAssembly |
-| Качество | FluentValidation, AutoMapper, JwtBearer, xUnit, NSubstitute, Testcontainers, WireMock.Net, Playwright, NBomber |
+| Безопасность и валидация | JwtBearer (Access/Refresh), ASP.NET Core Identity PasswordHasher, FluentValidation, Rate Limiting |
+| Документация API | OpenAPI, Scalar |
+| Тестирование | xUnit, Shouldly, NSubstitute, Testcontainers, WireMock.Net, Playwright, NBomber |
 | Инфраструктура | Docker, Docker Compose |
 
 ## Архитектура
@@ -40,15 +42,15 @@ Clean Architecture: зависимости направлены внутрь, Do
 
 ## Модули
 
-| Модуль | Ответственность |
-|---|---|
-| Auth | Регистрация, вход, ротация Access/Refresh токенов |
-| Users | Управление пользователями и ролями Admin/User, блокировка, удаление аккаунта |
-| Audit | Журнал действий: HTTP, SignalR, изменения сущностей |
-| Rooms | Комнаты, участники, роли в комнате, инвайт-коды, баны |
-| Queue | Очередь треков, закрепление, голосование, пропуск, автоудаление |
-| Playback | Синхронизация воспроизведения, автопереход к следующему треку |
-| Catalog | Треки и исполнители, поиск, импорт из YouTube |
+| Модуль | Ответственность | Код |
+|---|---|---|
+| Auth | Регистрация, вход, ротация Access/Refresh токенов | `AuthService`, `AuthController` |
+| Users | Управление пользователями и ролями Admin/User, блокировка, удаление аккаунта | `UserAdminService`, `UsersController`, `AdminUsersController` |
+| Audit | Журнал действий: HTTP, SignalR, изменения сущностей | `AuditMiddleware`, `AuditBuffer`, `AuditWriterService`, `AdminAuditController` |
+| Rooms | Комнаты, участники, роли в комнате, инвайт-коды, баны | `RoomService`, `RoomsController` |
+| Queue | Очередь треков, закрепление, голосование, пропуск, автоудаление | `QueueService`, `QueueRules`, `QueueController` |
+| Playback | Синхронизация воспроизведения, автопереход к следующему треку | `PlaybackWorker`, `RoomHub` |
+| Catalog | Треки и исполнители, поиск, импорт из YouTube | `CatalogService`, `PlaylistService`, `YouTubeTrackSource`, `CatalogController` |
 
 ## Точки интеграции
 
@@ -58,7 +60,7 @@ Clean Architecture: зависимости направлены внутрь, Do
 | YouTube Data API v3 | Поиск треков и их метаданных |
 | YouTube IFrame Player | Воспроизведение на клиенте |
 | SignalR | Рассылка изменений очереди участникам комнаты |
-| Файловая система | Структурированные логи (Serilog) |
+| Файловая система | Структурированные логи (Serilog) — не реализовано, см. DEF-012 |
 
 ## Запуск
 
@@ -87,6 +89,16 @@ Clean Architecture: зависимости направлены внутрь, Do
    ```
    Пересоздать схему с нуля: `@reset.sql`, затем снова `@apply_migrations.sql`.
 
+5. Запустите API (строка подключения и ключ подписи JWT передаются через переменные окружения, ключ — не короче 32 символов):
+   ```bash
+   export ConnectionStrings__SoundShare="User Id=SOUNDSHARE_APP;Password=<пароль из .env>;Data Source=localhost:1521/FREEPDB1"
+   export Jwt__SigningKey="<случайная строка от 32 символов>"
+   dotnet run --project src/SoundShare.WebApi
+   ```
+   - интерактивная документация API: http://localhost:5290/scalar
+   - проверки состояния: `/health/live`, `/health/ready`
+   - юнит-тесты: `dotnet test`
+
 Все демо-пользователи (`admin`, `user_owner`, `user_mod`, `user_1` …) имеют пароль `Demo_Pass1`.
 
 С хоста база доступна на `localhost:${ORACLE_PORT}` (по умолчанию 1521), сервис `FREEPDB1`.
@@ -106,6 +118,13 @@ db/
   tests/        тесты ограничений схемы (PASS/FAIL)
   reset.sql, apply_migrations.sql
 docs/           ТЗ, модель данных, требования, тестовая документация
+src/
+  SoundShare.Domain           сущности и бизнес-правила
+  SoundShare.Application      сервисы сценариев, DTO, валидация, интерфейсы репозиториев
+  SoundShare.Infrastructure   EF Core + Oracle, JWT, YouTube, аудит, фоновое воспроизведение
+  SoundShare.WebApi           контроллеры, middleware, SignalR-хаб
+tests/
+  SoundShare.Domain.UnitTests
 ```
 
 ## Документация

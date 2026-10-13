@@ -103,7 +103,7 @@
 | NFR-REL-01 | Д | `docker compose ps` показывает `healthy`; `/health/ready` при остановленной БД → 503 |
 | NFR-REL-02 | АТ | Тест остановки хоста: буфер аудита записан |
 | NFR-REL-03 | ТК | TC-28 |
-| NFR-OBS-01 | И | Формат логов: JSON с CorrelationId и UserId |
+| NFR-OBS-01 | И | Формат логов: JSON с CorrelationId и UserId. Сверка с приложением: не выполнено, DEF-012 |
 | NFR-OBS-02 | Д | Трасса запроса в OpenTelemetry-коллекторе |
 | NFR-MAINT-01 | АТ | Архитектурные тесты (NetArchTest) |
 | NFR-MAINT-02 | И | Настройки `.csproj`, сборка без предупреждений |
