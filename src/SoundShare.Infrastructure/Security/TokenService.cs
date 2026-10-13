@@ -9,7 +9,7 @@ using SoundShare.Domain.Users;
 
 namespace SoundShare.Infrastructure.Security;
 
-internal sealed class TokenService(IOptions<JwtOptions> options, TimeProvider time) : ITokenService
+public sealed class TokenService(IOptions<JwtOptions> options, TimeProvider time) : ITokenService
 {
     private readonly JwtOptions _options = options.Value;
     private readonly JsonWebTokenHandler _handler = new();
