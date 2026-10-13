@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SoundShare.Application/SoundShare.Application.csproj" />
+    <Project Path="src/SoundShare.Domain/SoundShare.Domain.csproj" />
+    <Project Path="src/SoundShare.Infrastructure/SoundShare.Infrastructure.csproj" />
+    <Project Path="src/SoundShare.WebApi/SoundShare.WebApi.csproj" />
+  </Folder>
+</Solution>
