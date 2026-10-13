@@ -14,7 +14,7 @@
 
 | Слой | Технологии |
 |---|---|
-| Backend | C#, .NET 11, ASP.NET Core Web API, SignalR |
+| Backend | C#, .NET 10 (LTS), ASP.NET Core Web API, SignalR |
 | Доступ к данным | Entity Framework Core (Oracle.EntityFrameworkCore), SQL-миграции |
 | База данных | Oracle Database 23ai Free; скрипты совместимы с 19c/21c |
 | Клиент | Blazor WebAssembly |
