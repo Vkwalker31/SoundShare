@@ -1,0 +1,112 @@
+===== TC-04 Пароль хранится только как хеш Identity v3 =====
+
+USERNAME	     HASH_PREFIX      HASH_LEN CHECK_
+-------------------- -------------- ---------- ------
+new_user	     AQAAAAIAAYag	    84 PASS
+===== TC-05.3 / TC-07.1 Refresh-токены user_1: только SHA-256, ротация со ссылкой на замену =====
+
+	ID HASH_BYTES STATE   REPLACED_BY_TOKEN_ID LIFETIME_DAYS
+---------- ---------- ------- -------------------- -------------
+	 4	   32 revoked			 5	       7
+	 5	   32 revoked				       7
+	 6	   32 active				       7
+===== TC-09.1 user_6 заблокирован, все токены отозваны =====
+
+USERNAME	      IS_ACTIVE ACTIVE_TOKENS CHECK_
+-------------------- ---------- ------------- ------
+user_6			      0 	    0 PASS
+===== TC-15.2 Удалённый аккаунт обезличен, позиция трека сохранена =====
+
+USERNAME	     EMAIL				 IS_ACTIVE HASH_PREFIX	  ACTIVE_TOKENS ACTIVE_ROOMS QUEUE_ITEMS CHECK_
+-------------------- ---------------------------------- ---------- -------------- ------------- ------------ ----------- ------
+deleted_12	     deleted_12@deleted.invalid 		 0 !deleted-accou	      0 	   0	       1 PASS
+===== TC-15.2 IP и User-Agent в журнале у удалённого пользователя =====
+
+AUDIT_ROWS ROWS_WITH_IP
+---------- ------------
+	 1	      1
+===== TC-16.2 Комната Indie Night: очередь и членство создателя созданы вместе (роль OWNER снята, когда user_3 ушёл в Jazz Lounge в TC-17) =====
+
+ROOM		       QUEUES CREATOR_ROWS CREATE_AUDITS CHECK_
+------------------ ---------- ------------ ------------- ------
+Indie Night		    1		 1	       2 PASS
+===== TC-17.3 Одно членство user_3 в Jazz Lounge =====
+
+ROWS_IN_JAZZ CHECK_
+------------ ------
+	   1 PASS
+===== TC-19.2 user_spammer исключён, бан около 10 минут =====
+
+USERNAME	     STATE  BAN_MINUTES CHECK_
+-------------------- ------ ----------- ------
+user_spammer	     left	     10 PASS
+===== TC-20.2 У каждого пользователя не больше одного активного членства =====
+
+USERS_IN_TWO_ROOMS CHECK_
+------------------ ------
+		 0 PASS
+===== TC-24 Статус автоудалённой позиции и записи журнала о ней =====
+
+TITLE			   STATUS
+-------------------------- -------------
+Never Gonna Give You Up    AUTO_REMOVED
+
+ACTION		     STATUS_CODE PATH
+-------------------- ----------- ----------------
+Queue.Vote		     200 /api/rooms/1/que
+				 ue/items/7/vote
+
+===== TC-26.2 Пропущенный трек SKIPPED, ровно один PLAYING в очереди =====
+
+TITLE			   STATUS
+-------------------------- -------------
+Numb			   PLAYING
+November Rain		   SKIPPED
+Thunderstruck		   SKIPPED
+===== TC-30.3 Запись Room.Create с CorrelationId tc30-check, GET не журналируется =====
+
+ACTION		     HTTP_METHO PATH		 STATUS_CODE CORRELATION_ID HAS HAS DURATION_MS
+-------------------- ---------- ---------------- ----------- -------------- --- --- -----------
+Room.Create	     POST	/api/rooms		 201 tc30-check     yes yes	     25
+
+  GET_ROWS CHECK_
+---------- ------
+	 0 PASS
+===== TC-14 Отказ в доступе к администрированию журналируется (DEF-014) =====
+
+ACTION		     PATH	      STATUS_CODE
+-------------------- ---------------- -----------
+GET api/admin/usersF /api/admin/users	      403
+ailed
+
+Admin.BlockUserFaile /api/admin/users	      403
+d		     /5/block
+
+Queue.PinFailed      /api/rooms/1/que	      403
+		     ue/items/8/pin
+
+Playback.SkipFailed  /api/rooms/1/pla	      403
+		     yback/skip
+
+GET api/admin/audit- /api/admin/audit	      403
+logsFailed	     -logs
+
+===== TC-24 Автоудаление записано в журнал триггером (DEF-015) =====
+
+SOURCE	 ACTION 	      ENTITY
+-------- -------------------- ---------------------------------------------------------------------------------------------------------------------------------
+DOMAIN	 Queue.AutoRemoved    QueueItem:7
+DOMAIN	 Queue.Skipped	      QueueItem:4
+===== TC-31 В журнале нет паролей и токенов =====
+
+     LEAKS CHECK_
+---------- ------
+	 0 PASS
+===== TC-31 Записи журнала по источникам после прогона =====
+
+SOURCE		CNT
+-------- ----------
+DOMAIN		  6
+HTTP		 92
+HUB		  1
+SYSTEM		  1

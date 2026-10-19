@@ -1,0 +1,3823 @@
+{
+  "info": {
+    "name": "SoundShare API",
+    "description": "Тест-кейсы задания 3 (docs/testing/test-cases.md), выполняемые через REST API на свежих демо-данных (db/seed/demo.sql). Папки выполняются по порядку: токены и идентификаторы из ответов передаются в следующие запросы.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 Подготовка",
+      "description": "Вход администратора, сбор идентификаторов демо-данных для последующих запросов (связывание).",
+      "item": [
+        {
+          "name": "Вход admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"admin\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_admin\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_admin\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Id пользователей (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users?pageSize=100"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.response.json().items.forEach(u => pm.collectionVariables.set(\"id_\" + u.username, u.id));",
+                  "pm.test(\"В демо-наборе есть user_1 и admin\", () => { pm.expect(pm.collectionVariables.get(\"id_user_1\")).to.not.be.undefined; });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Id публичных комнат",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const rooms = pm.response.json();",
+                  "rooms.forEach(r => { if (r.name === \"Rock & Metal Bar\") pm.collectionVariables.set(\"id_rock\", r.id); if (r.name === \"Lo-Fi Study\") pm.collectionVariables.set(\"id_lofi\", r.id); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_owner\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_owner\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_owner\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Id позиций очереди Rock & Metal Bar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_owner}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const q = pm.response.json();",
+                  "const map = {\"Numb\": \"numb\", \"Never Gonna Give You Up\": \"never\", \"Enter Sandman\": \"sandman\", \"Smells Like Teen Spirit\": \"smells\"};",
+                  "q.items.forEach(i => { if (map[i.track.title]) pm.collectionVariables.set(\"item_\" + map[i.track.title], i.id); });",
+                  "pm.collectionVariables.set(\"playing_rock\", q.playing ? q.playing.itemId : \"\");",
+                  "pm.test(\"ETag с версией очереди\", () => pm.expect(pm.response.headers.get(\"ETag\")).to.match(/^\"\\d+\"$/));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 Auth",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-01.1 Регистрация new_user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"new_user\", \"email\": \"new_user@example.com\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"В ответе id и username, без пароля и хеша\", () => { pm.expect(b.id).to.be.a(\"number\"); pm.expect(b.username).to.eql(\"new_user\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Strong_Pass1\"); pm.expect(pm.response.text().toLowerCase()).to.not.include(\"hash\"); });",
+                  "pm.test(\"Location указывает на пользователя\", () => pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/api/users/\" + b.id));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход new_user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"new_user\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_new_user\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_new_user\", m[1]); }",
+                  "function jwt(t) { let p = t.split(\".\")[1].replace(/-/g, \"+\").replace(/_/g, \"/\"); while (p.length % 4) p += \"=\";",
+                  "    return JSON.parse(CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(p))); }",
+                  "pm.test(\"TC-01.2 Роль нового пользователя — User\", () => pm.expect(jwt(pm.response.json().accessToken).role).to.eql(\"User\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-02.1 Имя занято в другом регистре",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"USER_1\", \"email\": \"other_user_1@example.com\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Сообщение о занятом имени\", () => pm.expect(pm.response.json().detail).to.match(/username/i));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-02.2 Email занят в другом регистре",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"brand_new_9\", \"email\": \"USER_1@EXAMPLE.COM\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Сообщение о занятом email\", () => pm.expect(pm.response.json().detail).to.match(/email/i));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-03 Некорректные данные: имя короче 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"ab\", \"email\": \"ab@example.com\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Ошибка поля Username\", () => pm.expect(Object.keys(pm.response.json().errors).join(\",\").toLowerCase()).to.include(\"username\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-03 Некорректные данные: имя с пробелом",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user name\", \"email\": \"un@example.com\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Ошибка поля Username\", () => pm.expect(Object.keys(pm.response.json().errors).join(\",\").toLowerCase()).to.include(\"username\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-03 Некорректные данные: email без @",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"valid_name1\", \"email\": \"no-at-sign\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Ошибка поля Email\", () => pm.expect(Object.keys(pm.response.json().errors).join(\",\").toLowerCase()).to.include(\"email\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-03 Некорректные данные: пароль короче 8",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"valid_name2\", \"email\": \"vn2@example.com\", \"password\": \"short1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Ошибка поля Password\", () => pm.expect(Object.keys(pm.response.json().errors).join(\",\").toLowerCase()).to.include(\"password\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-03 Некорректные данные: пароль без цифр",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"valid_name3\", \"email\": \"vn3@example.com\", \"password\": \"onlyletters\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Ошибка поля Password\", () => pm.expect(Object.keys(pm.response.json().errors).join(\",\").toLowerCase()).to.include(\"password\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-03 Некорректные данные: пустые поля",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"\", \"email\": \"\", \"password\": \"\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Ошибка поля Username\", () => pm.expect(Object.keys(pm.response.json().errors).join(\",\").toLowerCase()).to.include(\"username\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_1\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_1\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_1\", m[1]); }",
+                  "function jwt(t) { let p = t.split(\".\")[1].replace(/-/g, \"+\").replace(/_/g, \"/\"); while (p.length % 4) p += \"=\";",
+                  "    return JSON.parse(CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(p))); }",
+                  "const c = jwt(pm.response.json().accessToken);",
+                  "pm.test(\"TC-05.2 Claims sub, unique_name, role, jti, iat, exp\", () => { [\"sub\", \"unique_name\", \"role\", \"jti\", \"iat\", \"exp\"].forEach(k => pm.expect(c).to.have.property(k)); pm.expect(c.role).to.eql(\"User\"); });",
+                  "pm.test(\"TC-05.2 Время жизни access-токена 900 с\", () => pm.expect(c.exp - c.iat).to.eql(900));",
+                  "const cookie = pm.response.headers.get(\"Set-Cookie\").toLowerCase();",
+                  "pm.test(\"TC-05.3 Cookie rt: HttpOnly, Secure, SameSite=Strict, Path=/api/auth\", () => { [\"httponly\", \"secure\", \"samesite=strict\", \"path=/api/auth\"].forEach(a => pm.expect(cookie).to.include(a)); });",
+                  "pm.test(\"TC-05.3 Cookie живёт 7 дней\", () => { const exp = new Date(/expires=([^;]+)/.exec(cookie)[1]); const days = (exp - Date.now()) / 86400000; pm.expect(days).to.be.within(6.9, 7.1); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-06.1 Вход с неверным паролем",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_1\", \"password\": \"Wrong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Токены не выданы\", () => { pm.expect(pm.response.json()).to.not.have.property(\"accessToken\"); pm.expect(pm.response.headers.get(\"Set-Cookie\")).to.be.undefined; });",
+                  "pm.test(\"Сообщение не уточняет, что неверно\", () => pm.expect(pm.response.json().detail).to.eql(\"Invalid username or password.\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-07.1 Обновление токена (R1 → R2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "rt={{rt_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const m = /rt=([^;]+)/.exec(pm.response.headers.get(\"Set-Cookie\"));",
+                  "pm.test(\"Выдана новая cookie R2\", () => pm.expect(m[1]).to.not.eql(pm.collectionVariables.get(\"rt_user_1\")));",
+                  "pm.collectionVariables.set(\"rt_user_1_r2\", m[1]);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-07.2 Повторное использование R1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "rt={{rt_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-07.2 R2 тоже отозван после обнаружения повтора",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "rt={{rt_user_1_r2}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_1\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_1\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_1\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_2\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_2\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_2\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-08.1 Выход",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "rt={{rt_user_2}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"Cookie rt удалена (истёкшая)\", () => { const sc = pm.response.headers.get(\"Set-Cookie\"); pm.expect(sc).to.include(\"rt=\"); pm.expect(sc).to.match(/expires=Thu, 01 Jan 1970/i); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-08.2 Refresh после выхода",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "rt={{rt_user_2}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Users",
+      "description": "",
+      "item": [
+        {
+          "name": "Вход user_6",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_6\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_6\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_6\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-09.1 Администратор блокирует user_6",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users/{{id_user_6}}/block"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-09.2 user_6 обновляет токен",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "rt={{rt_user_6}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-09.3 user_6 входит с верным паролем",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_6\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Сообщение о блокировке\", () => pm.expect(pm.response.json().title).to.eql(\"Account blocked\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-11.1 Первая страница по 5",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users?page=1&pageSize=5"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"5 записей и есть следующая страница\", () => { pm.expect(b.items.length).to.eql(5); pm.expect(b.total).to.be.above(5); });",
+                  "pm.test(\"В ответе нет хешей паролей\", () => pm.expect(pm.response.text()).to.not.match(/passwordHash|AQAAAA/i));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-11.2 Фильтр role=Admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users?role=Admin"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Только администраторы, есть admin\", () => { const items = pm.response.json().items; pm.expect(items.every(u => u.role === \"Admin\")).to.be.true; pm.expect(items.map(u => u.username)).to.include(\"admin\"); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-11.3 Фильтр isActive=false",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users?isActive=false"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Список содержит user_6\", () => pm.expect(pm.response.json().items.map(u => u.username)).to.include(\"user_6\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-12.1 Создание second_admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"second_admin\", \"email\": \"second_admin@example.com\", \"password\": \"Strong_Pass1\", \"role\": \"Admin\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Location указывает на пользователя\", () => pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/api/admin/users/\"));",
+                  "pm.collectionVariables.set(\"id_second_admin\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход second_admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"second_admin\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_second_admin\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_second_admin\", m[1]); }",
+                  "function jwt(t) { let p = t.split(\".\")[1].replace(/-/g, \"+\").replace(/_/g, \"/\"); while (p.length % 4) p += \"=\";",
+                  "    return JSON.parse(CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(p))); }",
+                  "pm.test(\"TC-12.2 claim role = Admin\", () => pm.expect(jwt(pm.response.json().accessToken).role).to.eql(\"Admin\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-12.2 second_admin видит список пользователей",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_second_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Подготовка TC-13: снять роль с second_admin",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users/{{id_second_admin}}/role",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"role\": \"User\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-13.1 Снять роль Admin с последнего администратора",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users/{{id_admin}}/role",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"role\": \"User\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Сообщение о последнем администраторе\", () => pm.expect(pm.response.json().detail).to.match(/last administrator/i));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-14.1 user_1 открывает администрирование",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-14.2 user_1 блокирует user_2",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users/{{id_user_2}}/block"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-14.3 Без токена",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/admin/users"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_deleted",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_deleted\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_deleted\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_deleted\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-15.1 Удаление своего аккаунта",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_deleted}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-15.3 Вход удалённым пользователем",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_deleted\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Rooms",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-18.1 Список публичных комнат",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "const rock = r.find(x => x.name === \"Rock & Metal Bar\"), lofi = r.find(x => x.name === \"Lo-Fi Study\");",
+                  "pm.test(\"Две публичные комнаты, приватной нет\", () => { pm.expect(r.length).to.eql(2); pm.expect(r.map(x => x.name)).to.not.include(\"Jazz Lounge\"); });",
+                  "pm.test(\"Rock & Metal Bar — 8 участников, Lo-Fi Study — 0\", () => { pm.expect(rock.membersCount).to.eql(8); pm.expect(lofi.membersCount).to.eql(0); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_3\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_3\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_3\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-16.1 Создание комнаты Indie Night",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Indie Night\", \"isPrivate\": false}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json(); pm.collectionVariables.set(\"id_indie\", b.id);",
+                  "pm.test(\"Location указывает на комнату\", () => pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/api/rooms/\" + b.id));",
+                  "pm.test(\"Инвайт-код из 6 символов допустимого алфавита\", () => pm.expect(b.inviteCode).to.match(/^[A-HJ-NP-Z2-9]{6}$/));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-16.1 Создатель — владелец",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_indie}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Роль Owner\", () => pm.expect(pm.response.json().myRole).to.eql(\"Owner\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-17.1 Неверный код JZZ7Q1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/join",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"inviteCode\": \"JZZ7Q1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-17.2 Код строчными jzz7q2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/join",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"inviteCode\": \"jzz7q2\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json(); pm.collectionVariables.set(\"id_jazz\", b.id);",
+                  "pm.test(\"Jazz Lounge, роль Contributor\", () => { pm.expect(b.name).to.eql(\"Jazz Lounge\"); pm.expect(b.myRole).to.eql(\"Contributor\"); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-17.3 Повторный вход по JZZ7Q2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/join",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"inviteCode\": \"JZZ7Q2\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Роль не изменилась\", () => pm.expect(pm.response.json().myRole).to.eql(\"Contributor\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_mod",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_mod\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_mod\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_mod\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_spammer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_spammer\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_spammer\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_spammer\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-19.1 Участник банит модератора",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_spammer}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/bans",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\": {{id_user_mod}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-19.2 Модератор банит спамера на 10 минут",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_mod}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/bans",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\": {{id_user_spammer}}, \"durationMinutes\": 10}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-19.3 Забаненный входит снова",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_spammer}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/members"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Указано время окончания бана\", () => pm.expect(pm.response.json().detail).to.match(/banned from this room until \\d{4}-\\d{2}-\\d{2}/));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-20.1 user_1 входит в Lo-Fi Study",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_lofi}}/members"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Роль Contributor\", () => pm.expect(pm.response.json().myRole).to.eql(\"Contributor\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-20.2 Членство в Rock & Metal Bar закрыто",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"В Rock & Metal Bar user_1 больше не участник\", () => pm.expect(pm.response.json().myRole).to.eql(\"None\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Возврат user_1 в Rock & Metal Bar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/members"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Queue",
+      "description": "",
+      "item": [
+        {
+          "name": "Вход user_5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_5\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_5\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_5\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Поиск «Billie» в каталоге",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query=Billie"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"trk_billie\", pm.response.json().items[0].id);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Поиск «Blinding» в каталоге",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query=Blinding"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"trk_blinding\", pm.response.json().items[0].id);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Поиск «Despacito» в каталоге",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query=Despacito"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"trk_despacito\", pm.response.json().items[0].id);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Поиск «Bohemian» в каталоге",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query=Bohemian"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"trk_bohemian\", pm.response.json().items[0].id);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-22.1 user_5 добавляет трек 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"trackId\": {{trk_billie}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Рейтинг +1 (голос автора)\", () => pm.expect(pm.response.json().score).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-22.1 user_5 добавляет трек 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"trackId\": {{trk_blinding}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Рейтинг +1 (голос автора)\", () => pm.expect(pm.response.json().score).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-22.1 user_5 добавляет трек 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"trackId\": {{trk_despacito}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Рейтинг +1 (голос автора)\", () => pm.expect(pm.response.json().score).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Версия очереди перед 4-м треком",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"ver_before\", pm.response.json().version);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-22.2 Четвёртый трек",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"trackId\": {{trk_bohemian}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});",
+                  "pm.test(\"Сообщение о лимите 3 трека\", () => pm.expect(pm.response.json().detail).to.include(\"3 tracks\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-22.3 Версия очереди не изменилась",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"QUEUE_VERSION не вырос\", () => pm.expect(pm.response.json().version).to.eql(Number(pm.collectionVariables.get(\"ver_before\"))));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход user_4",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"user_4\", \"password\": \"{{password}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_user_4\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_user_4\", m[1]); }"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-23.1 Голос 1 за Numb",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_4}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_numb}}/vote",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"value\": 1}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Рейтинг +3\", () => pm.expect(pm.response.json().score).to.eql(3));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-23.2 Голос 1 за Numb",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_4}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_numb}}/vote",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"value\": 1}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Рейтинг +3\", () => pm.expect(pm.response.json().score).to.eql(3));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-23.3 Голос -1 за Numb",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_4}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_numb}}/vote",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"value\": -1}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Рейтинг +1\", () => pm.expect(pm.response.json().score).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-23.4 Голос 0 за Numb",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_4}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_numb}}/vote",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"value\": 0}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Рейтинг +2\", () => pm.expect(pm.response.json().score).to.eql(2));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-23 Некорректное значение голоса",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_4}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_numb}}/vote",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"value\": 2}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Подготовка TC-24: user_3 входит в Rock & Metal Bar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/members"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-24.1 Голос −1 при рейтинге −4",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_never}}/vote",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"value\": -1}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Рейтинг −5, статус AutoRemoved\", () => { const b = pm.response.json(); pm.expect(b.score).to.eql(-5); pm.expect(b.status).to.eql(\"AutoRemoved\"); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-24.1 Трек исчез из очереди",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_owner}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Never Gonna Give You Up нет в очереди\", () => pm.expect(pm.response.json().items.map(i => i.id)).to.not.include(Number(pm.collectionVariables.get(\"item_never\"))));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-25.1 Contributor закрепляет Numb",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_numb}}/pin"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-25.2 Модератор закрепляет Numb",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_mod}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_numb}}/pin"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-25.2 Порядок: закреплённые первыми",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_mod}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().items.map(i => i.id); const g = n => ids.indexOf(Number(pm.collectionVariables.get(n)));",
+                  "pm.test(\"Enter Sandman, затем Numb, затем Smells Like Teen Spirit\", () => { pm.expect(g(\"item_sandman\")).to.eql(0); pm.expect(g(\"item_numb\")).to.eql(1); pm.expect(g(\"item_smells\")).to.eql(2); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-25.3 Модератор открепляет Enter Sandman",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_mod}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue/items/{{item_sandman}}/pin"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-25.3 Порядок после открепления",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_mod}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().items.map(i => i.id); const g = n => ids.indexOf(Number(pm.collectionVariables.get(n)));",
+                  "pm.test(\"Numb, Smells Like Teen Spirit (+5), потом Enter Sandman (+1)\", () => { pm.expect(g(\"item_numb\")).to.eql(0); pm.expect(g(\"item_smells\")).to.eql(1); pm.expect(g(\"item_sandman\")).to.be.above(g(\"item_smells\")); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Playback",
+      "description": "",
+      "item": [
+        {
+          "name": "Текущий трек и первая позиция очереди",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_owner}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const q = pm.response.json(); pm.collectionVariables.set(\"playing_before\", q.playing.itemId); pm.collectionVariables.set(\"next_expected\", q.items[0].id);",
+                  "pm.test(\"Сейчас играет трек\", () => pm.expect(q.playing).to.not.be.null);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-26.1 Голос за пропуск: user_owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_owner}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/playback/skip-votes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Требуется строго больше половины онлайн\", () => pm.expect(b.required).to.be.above(0));",
+                  "pm.test(\"Порог не достигнут — трек продолжает играть\", () => { pm.expect(b.skipped).to.be.false; pm.expect(b.votes).to.be.below(b.required); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-26.1 Голос за пропуск: user_mod",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_mod}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/playback/skip-votes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Требуется строго больше половины онлайн\", () => pm.expect(b.required).to.be.above(0));",
+                  "pm.test(\"Порог не достигнут — трек продолжает играть\", () => { pm.expect(b.skipped).to.be.false; pm.expect(b.votes).to.be.below(b.required); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-26.1 Повторный голос не учитывается",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_mod}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/playback/skip-votes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Голосов по-прежнему 2\", () => pm.expect(pm.response.json().votes).to.eql(2));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-26.1 Голос за пропуск: user_1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/playback/skip-votes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Требуется строго больше половины онлайн\", () => pm.expect(b.required).to.be.above(0));",
+                  "pm.test(\"Порог не достигнут — трек продолжает играть\", () => { pm.expect(b.skipped).to.be.false; pm.expect(b.votes).to.be.below(b.required); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-26.1 Голос за пропуск: user_5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_5}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/playback/skip-votes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Требуется строго больше половины онлайн\", () => pm.expect(b.required).to.be.above(0));",
+                  "pm.test(\"Порог не достигнут — трек продолжает играть\", () => { pm.expect(b.skipped).to.be.false; pm.expect(b.votes).to.be.below(b.required); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-26.2 Голос большинства: user_4",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_4}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/playback/skip-votes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Требуется строго больше половины онлайн\", () => pm.expect(b.required).to.be.above(0));",
+                  "pm.test(\"Трек пропущен\", () => pm.expect(b.skipped).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-26.2 Играет первая позиция очереди",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_owner}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const q = pm.response.json();",
+                  "pm.test(\"Новый текущий трек — бывшая первая позиция\", () => pm.expect(q.playing.itemId).to.eql(Number(pm.collectionVariables.get(\"next_expected\"))));",
+                  "pm.test(\"Пропущенный трек больше не играет и не в очереди\", () => { const prev = Number(pm.collectionVariables.get(\"playing_before\")); pm.expect(q.playing.itemId).to.not.eql(prev); pm.expect(q.items.map(i => i.id)).to.not.include(prev); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Пропуск модератором без голосования (Contributor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_rock}}/playback/skip"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Catalog",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-34.1 Поиск thunder",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query=thunder"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Найден Thunderstruck\", () => pm.expect(pm.response.json().items.map(t => t.title)).to.include(\"Thunderstruck\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-34.2 Поиск по исполнителю GUNS N",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query=GUNS%20N"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Найдены оба трека Guns N' Roses\", () => { const t = pm.response.json().items.map(x => x.title); pm.expect(t).to.include(\"November Rain\"); pm.expect(t).to.include(\"Sweet Child O' Mine\"); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-34.3 Пустой запрос",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query="
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-36.1 YouTube недоступен: thunder из каталога",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query=thunder"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"externalSearchAvailable = false, локальный результат есть\", () => { const b = pm.response.json(); pm.expect(b.externalSearchAvailable).to.be.false; pm.expect(b.items.length).to.be.above(0); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-36.2 YouTube недоступен: неизвестная песня",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tracks?query=unknown%20song"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Пустой список и признак недоступности\", () => { const b = pm.response.json(); pm.expect(b.items.length).to.eql(0); pm.expect(b.externalSearchAvailable).to.be.false; });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Audit",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-30.1 Создание комнаты с X-Correlation-Id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "tc30-check"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Audit Check\", \"isPrivate\": true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Заголовок X-Correlation-Id возвращён\", () => pm.expect(pm.response.headers.get(\"X-Correlation-Id\")).to.eql(\"tc30-check\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-30.2 GET /api/rooms",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_3}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-30.3 Запись Room.Create в журнале",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/audit-logs?userId={{id_user_3}}&action=Room.Create"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const e = pm.response.json().items.find(x => x.correlationId === \"tc30-check\");",
+                  "pm.test(\"Есть запись с CorrelationId tc30-check\", () => pm.expect(e).to.not.be.undefined);",
+                  "pm.test(\"Метод POST, путь без query, код 201, IP и длительность заполнены\", () => { pm.expect(e.httpMethod).to.eql(\"POST\"); pm.expect(e.path).to.eql(\"/api/rooms\"); pm.expect(e.statusCode).to.eql(201); pm.expect(e.ipAddress).to.be.a(\"string\"); pm.expect(e.durationMs).to.be.at.least(0); });"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(() => {}, 1500);"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-06.2 / TC-32.1 Фильтр Auth.LoginFailed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/audit-logs?action=Auth.LoginFailed"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const items = pm.response.json().items;",
+                  "pm.test(\"Только неудачные входы\", () => { pm.expect(items.length).to.be.above(0); pm.expect(items.every(x => x.action === \"Auth.LoginFailed\")).to.be.true; });",
+                  "pm.test(\"Новые первыми\", () => { for (let i = 1; i < items.length; i++) pm.expect(items[i - 1].id).to.be.above(items[i].id); });",
+                  "const last = items.find(x => x.httpMethod === \"POST\");",
+                  "pm.test(\"TC-06.2 Код 401, есть IP и CorrelationId, пароля нет\", () => { pm.expect(last.statusCode).to.eql(401); pm.expect(last.ipAddress).to.be.a(\"string\"); pm.expect(last.correlationId).to.be.a(\"string\"); pm.expect(JSON.stringify(last)).to.not.include(\"Wrong_Pass1\"); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-32.2 Первая страница по 3",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/audit-logs?pageSize=3"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json(); pm.collectionVariables.set(\"audit_page1\", JSON.stringify(b.items.map(x => x.id))); pm.collectionVariables.set(\"audit_cursor\", b.nextCursor);",
+                  "pm.test(\"3 записи и курсор следующей страницы\", () => { pm.expect(b.items.length).to.eql(3); pm.expect(b.nextCursor).to.be.a(\"number\"); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-32.2 Следующая страница по курсору",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_admin}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/audit-logs?pageSize=3&cursor={{audit_cursor}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "const p1 = JSON.parse(pm.collectionVariables.get(\"audit_page1\")); const p2 = pm.response.json().items.map(x => x.id);",
+                  "pm.test(\"Страницы не пересекаются и идут по убыванию id\", () => { pm.expect(p2.filter(x => p1.includes(x))).to.be.empty; pm.expect(Math.max(...p2)).to.be.below(Math.min(...p1)); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-32.3 Журнал от имени user_1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/audit-logs"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Security",
+      "description": "",
+      "item": [
+        {
+          "name": "TC-10.2 Подключение к Hub без токена",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/hubs/room/negotiate?negotiateVersion=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-10.1 Подключение к Hub с токеном в query",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/hubs/room/negotiate?negotiateVersion=1&access_token={{tok_user_1}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Выдан connectionToken\", () => pm.expect(pm.response.json().connectionToken).to.be.a(\"string\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-10.3 Токен в query для REST не принимается",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/rooms?access_token={{tok_user_1}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-37.1 Очередь чужой приватной комнаты",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_jazz}}/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-37.2 Голос в чужой приватной комнате",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/{{id_jazz}}/queue/items/{{item_smells}}/vote",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"value\": 1}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Ошибка в формате ProblemDetails\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"   at \");",
+                  "    pm.expect(pm.response.text()).to.not.include(\"Exception\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-37.3 Перебор roomId: 0",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/0/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-37.3 Перебор roomId: 999999",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms/999999/queue"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "TC-38.2 Некорректный JSON",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/rooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"broken\", "
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Нет деталей реализации\", () => { const t = pm.response.text(); [\"   at \", \"Exception\", \"ORA-\", \"SOUNDSHARE\", \"D:\\\\\"].forEach(s => pm.expect(t).to.not.include(s)); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Несуществующий эндпоинт API",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tok_user_1}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/does-not-exist"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Просроченный/подделанный токен",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.invalid"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Повышение прав через тело запроса игнорируется",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"sneaky_user\", \"email\": \"sneaky@example.com\", \"password\": \"Strong_Pass1\", \"role\": \"Admin\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Вход sneaky_user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"sneaky_user\", \"password\": \"Strong_Pass1\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"tok_sneaky_user\", pm.response.json().accessToken); }",
+                  "const sc = pm.response.headers.get(\"Set-Cookie\") || \"\";",
+                  "const m = /rt=([^;]+)/.exec(sc);",
+                  "if (m) { pm.collectionVariables.set(\"rt_sneaky_user\", m[1]); }",
+                  "function jwt(t) { let p = t.split(\".\")[1].replace(/-/g, \"+\").replace(/_/g, \"/\"); while (p.length % 4) p += \"=\";",
+                  "    return JSON.parse(CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(p))); }",
+                  "pm.test(\"Роль осталась User\", () => pm.expect(jwt(pm.response.json().accessToken).role).to.eql(\"User\"));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Ограничение частоты входа (rate limit)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"nobody\", \"password\": \"x\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус один из [401, 429]\", () => pm.expect([401, 429]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

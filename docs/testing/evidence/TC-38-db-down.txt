@@ -1,0 +1,22 @@
+--- TC-38.1 GET /api/rooms, Oracle недоступна (после исправления DEF-022)
+HTTP/1.1 503 Service Unavailable
+Content-Type: application/problem+json
+Date: Mon, 19 Oct 2026 21:40:08 GMT
+Server: Kestrel
+Cache-Control: no-cache,no-store
+Expires: -1
+Pragma: no-cache
+Transfer-Encoding: chunked
+X-Correlation-Id: 21ff26750968498f97f4a4b9ec68026a
+
+{"type":"service-unavailable","title":"Service unavailable","status":503,"traceId":"00-21a197db5f4791fe66cdbb3acb0a2b3b-262b634589636bf7-00"}
+
+--- TC-38.2 некорректный JSON
+HTTP/1.1 400 Bad Request
+Content-Type: application/problem+json; charset=utf-8
+Date: Mon, 19 Oct 2026 21:40:08 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+X-Correlation-Id: 7ff2fccb3d2244d9baec07d4a0b342fc
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"$":["Expected start of a property name or value, but instead reached end of data. Path: $ | LineNumber: 0 | BytePositionInLine: 19."],"request":["The request field is required."]},"traceId":"00-8660b1f00f1ff4b32a291ab2cfa2d776-db703a67b1278a84-00"}

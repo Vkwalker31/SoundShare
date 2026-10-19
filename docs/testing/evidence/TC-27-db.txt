@@ -1,0 +1,13 @@
+
+TITLE			   STATUS	    STARTED
+-------------------------- ---------------- ----------
+Bohemian Rhapsody	   PLAYED	    21:13:38
+Sweet Child O' Mine	   PLAYED	    21:21:38
+Thunderstruck		   PLAYED	    21:30:48
+Enter Sandman		   PLAYING	    21:35:41
+
+
+PLAYING_COUNT
+-------------
+	    1
+

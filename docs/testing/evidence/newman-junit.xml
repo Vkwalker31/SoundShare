@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="SoundShare API" tests="116" time="9.181">
+  <testsuite name="00 Подготовка / Вход admin" id="f297048d-bea3-46f2-87ff-b3f32a168f33" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.979">
+    <testcase name="Статус 200" time="0.979" classname="00Admin"/>
+  </testsuite>
+  <testsuite name="00 Подготовка / Id пользователей (admin)" id="593ab54d-755f-4cd8-98cb-16f5c1b0fb1d" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.491">
+    <testcase name="Статус 200" time="0.491" classname="00IdAdmin"/>
+    <testcase name="В демо-наборе есть user_1 и admin" time="0.491" classname="00IdAdmin"/>
+  </testsuite>
+  <testsuite name="00 Подготовка / Id публичных комнат" id="b164e65f-ed1c-4734-b265-b2c7af657b5c" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.282">
+    <testcase name="Статус 200" time="0.282" classname="00Id"/>
+  </testsuite>
+  <testsuite name="00 Подготовка / Вход user_owner" id="fb07efae-7ee0-4b57-9a6c-ad6cd73802da" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.214">
+    <testcase name="Статус 200" time="0.214" classname="00UserOwner"/>
+  </testsuite>
+  <testsuite name="00 Подготовка / Id позиций очереди Rock &amp; Metal Bar" id="b5da2f4c-06b9-4bb3-adc8-74eecb379ecc" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.198">
+    <testcase name="Статус 200" time="0.198" classname="00IdRockAmpMetalBar"/>
+    <testcase name="ETag с версией очереди" time="0.198" classname="00IdRockAmpMetalBar"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-01.1 Регистрация new_user" id="5c759c24-24d0-44f2-a915-0cba71a43c6d" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.244">
+    <testcase name="Статус 201" time="0.244" classname="01AuthTc011NewUser"/>
+    <testcase name="В ответе id и username, без пароля и хеша" time="0.244" classname="01AuthTc011NewUser"/>
+    <testcase name="Location указывает на пользователя" time="0.244" classname="01AuthTc011NewUser"/>
+  </testsuite>
+  <testsuite name="01 Auth / Вход new_user" id="a8b509d3-c290-4c47-9827-efff86a685e1" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.143">
+    <testcase name="Статус 200" time="0.143" classname="01AuthNewUser"/>
+    <testcase name="TC-01.2 Роль нового пользователя — User" time="0.143" classname="01AuthNewUser"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-02.1 Имя занято в другом регистре" id="7efead40-53cf-4149-8b1e-d7dda205e8f3" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.041">
+    <testcase name="Статус 409" time="0.041" classname="01AuthTc021"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.041" classname="01AuthTc021"/>
+    <testcase name="Сообщение о занятом имени" time="0.041" classname="01AuthTc021"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-02.2 Email занят в другом регистре" id="f8e99c4c-2d03-47c7-807c-c733ca42387e" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.016">
+    <testcase name="Статус 409" time="0.016" classname="01AuthTc022Email"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.016" classname="01AuthTc022Email"/>
+    <testcase name="Сообщение о занятом email" time="0.016" classname="01AuthTc022Email"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-03 Некорректные данные: имя короче 3" id="125dbd78-4dd4-4e7f-a5bc-8291da5ff4c5" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.034">
+    <testcase name="Статус 400" time="0.034" classname="01AuthTc033"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.034" classname="01AuthTc033"/>
+    <testcase name="Ошибка поля Username" time="0.034" classname="01AuthTc033"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-03 Некорректные данные: имя с пробелом" id="c34f1359-7e52-43c1-8d0d-76647d5ff03f" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.009">
+    <testcase name="Статус 400" time="0.009" classname="01AuthTc03"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.009" classname="01AuthTc03"/>
+    <testcase name="Ошибка поля Username" time="0.009" classname="01AuthTc03"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-03 Некорректные данные: email без @" id="de053e02-7e58-4b32-914e-dbfda60dc7d3" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.006">
+    <testcase name="Статус 400" time="0.006" classname="01AuthTc03Email"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.006" classname="01AuthTc03Email"/>
+    <testcase name="Ошибка поля Email" time="0.006" classname="01AuthTc03Email"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-03 Некорректные данные: пароль короче 8" id="9a6e4786-a6ae-4e6f-b9cf-85fbe0ac440c" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.005">
+    <testcase name="Статус 400" time="0.005" classname="01AuthTc038"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.005" classname="01AuthTc038"/>
+    <testcase name="Ошибка поля Password" time="0.005" classname="01AuthTc038"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-03 Некорректные данные: пароль без цифр" id="0b7d13d0-31bf-422e-b656-bb5cec93cef4" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.004">
+    <testcase name="Статус 400" time="0.004" classname="01AuthTc03"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.004" classname="01AuthTc03"/>
+    <testcase name="Ошибка поля Password" time="0.004" classname="01AuthTc03"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-03 Некорректные данные: пустые поля" id="2fcbebd1-a98e-442f-885c-1c83902fc4d2" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.006">
+    <testcase name="Статус 400" time="0.006" classname="01AuthTc03"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.006" classname="01AuthTc03"/>
+    <testcase name="Ошибка поля Username" time="0.006" classname="01AuthTc03"/>
+  </testsuite>
+  <testsuite name="01 Auth / Вход user_1" id="c526c021-dd3e-45b2-8b0e-ae879259bb8e" timestamp="2026-10-19T21:31:51.993Z" tests="5" failures="0" errors="0" time="0.140">
+    <testcase name="Статус 200" time="0.140" classname="01AuthUser1"/>
+    <testcase name="TC-05.2 Claims sub, unique_name, role, jti, iat, exp" time="0.140" classname="01AuthUser1"/>
+    <testcase name="TC-05.2 Время жизни access-токена 900 с" time="0.140" classname="01AuthUser1"/>
+    <testcase name="TC-05.3 Cookie rt: HttpOnly, Secure, SameSite=Strict, Path=/api/auth" time="0.140" classname="01AuthUser1"/>
+    <testcase name="TC-05.3 Cookie живёт 7 дней" time="0.140" classname="01AuthUser1"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-06.1 Вход с неверным паролем" id="f1ba62ad-d238-4242-8687-60ab0303f898" timestamp="2026-10-19T21:31:51.993Z" tests="4" failures="0" errors="0" time="0.129">
+    <testcase name="Статус 401" time="0.129" classname="01AuthTc061"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.129" classname="01AuthTc061"/>
+    <testcase name="Токены не выданы" time="0.129" classname="01AuthTc061"/>
+    <testcase name="Сообщение не уточняет, что неверно" time="0.129" classname="01AuthTc061"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-07.1 Обновление токена (R1 → R2)" id="83010b38-2ebf-4a78-a527-2920cfb47fe6" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.102">
+    <testcase name="Статус 200" time="0.102" classname="01AuthTc071R1R2"/>
+    <testcase name="Выдана новая cookie R2" time="0.102" classname="01AuthTc071R1R2"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-07.2 Повторное использование R1" id="1545a8b6-988c-4d3e-bbc8-e374380ebdc1" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.047">
+    <testcase name="Статус 401" time="0.047" classname="01AuthTc072R1"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-07.2 R2 тоже отозван после обнаружения повтора" id="b385398a-12ac-48df-866f-b8d3705bc494" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.011">
+    <testcase name="Статус 401" time="0.011" classname="01AuthTc072R2"/>
+  </testsuite>
+  <testsuite name="01 Auth / Вход user_1" id="d42ad1f8-d24d-4d82-95a0-6d0f73637670" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.138">
+    <testcase name="Статус 200" time="0.138" classname="01AuthUser1"/>
+  </testsuite>
+  <testsuite name="01 Auth / Вход user_2" id="0c265eae-0b16-453e-a467-6c7630aa8866" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.149">
+    <testcase name="Статус 200" time="0.149" classname="01AuthUser2"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-08.1 Выход" id="07e3b250-7476-4b29-b068-0db931084e1b" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.034">
+    <testcase name="Статус 204" time="0.034" classname="01AuthTc081"/>
+    <testcase name="Cookie rt удалена (истёкшая)" time="0.034" classname="01AuthTc081"/>
+  </testsuite>
+  <testsuite name="01 Auth / TC-08.2 Refresh после выхода" id="52c15f62-1ead-487d-a402-2f17613a0989" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.013">
+    <testcase name="Статус 401" time="0.013" classname="01AuthTc082Refresh"/>
+  </testsuite>
+  <testsuite name="02 Users / Вход user_6" id="1ea04f66-dbb3-4099-9d64-9022d4808456" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.147">
+    <testcase name="Статус 200" time="0.147" classname="02UsersUser6"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-09.1 Администратор блокирует user_6" id="37ae4864-5e13-4e2e-a40d-3e3b858254ac" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.078">
+    <testcase name="Статус 204" time="0.078" classname="02UsersTc091User6"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-09.2 user_6 обновляет токен" id="d7196110-579f-4663-8e62-7cf5330953d7" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.027">
+    <testcase name="Статус 401" time="0.027" classname="02UsersTc092User6"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-09.3 user_6 входит с верным паролем" id="a8720553-4ce4-48e8-9a53-41583b2f0c56" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.134">
+    <testcase name="Статус 403" time="0.134" classname="02UsersTc093User6"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.134" classname="02UsersTc093User6"/>
+    <testcase name="Сообщение о блокировке" time="0.134" classname="02UsersTc093User6"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-11.1 Первая страница по 5" id="f8b73192-b6aa-43df-b283-26b0e41ffd16" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.013">
+    <testcase name="Статус 200" time="0.013" classname="02UsersTc1115"/>
+    <testcase name="5 записей и есть следующая страница" time="0.013" classname="02UsersTc1115"/>
+    <testcase name="В ответе нет хешей паролей" time="0.013" classname="02UsersTc1115"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-11.2 Фильтр role=Admin" id="a4515aa5-1e43-41b3-9989-ca86d0dbc591" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.047">
+    <testcase name="Статус 200" time="0.047" classname="02UsersTc112RoleAdmin"/>
+    <testcase name="Только администраторы, есть admin" time="0.047" classname="02UsersTc112RoleAdmin"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-11.3 Фильтр isActive=false" id="1f08cfea-05a6-4ed5-9477-e47e2b4d0ec4" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.040">
+    <testcase name="Статус 200" time="0.040" classname="02UsersTc113IsActiveFalse"/>
+    <testcase name="Список содержит user_6" time="0.040" classname="02UsersTc113IsActiveFalse"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-12.1 Создание second_admin" id="439f08b3-20ab-4fd5-82cb-b777dbd448e2" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.249">
+    <testcase name="Статус 201" time="0.249" classname="02UsersTc121SecondAdmin"/>
+    <testcase name="Location указывает на пользователя" time="0.249" classname="02UsersTc121SecondAdmin"/>
+  </testsuite>
+  <testsuite name="02 Users / Вход second_admin" id="9f2fb62e-d67e-4227-833f-86f05ad15b0c" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.140">
+    <testcase name="Статус 200" time="0.140" classname="02UsersSecondAdmin"/>
+    <testcase name="TC-12.2 claim role = Admin" time="0.140" classname="02UsersSecondAdmin"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-12.2 second_admin видит список пользователей" id="6f2cb4ee-5650-4b32-975a-9a91635340f7" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.009">
+    <testcase name="Статус 200" time="0.009" classname="02UsersTc122SecondAdmin"/>
+  </testsuite>
+  <testsuite name="02 Users / Подготовка TC-13: снять роль с second_admin" id="c7e1a53f-091d-4e5e-ae2e-dd612dbbe2c5" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.062">
+    <testcase name="Статус 204" time="0.062" classname="02UsersTc13SecondAdmin"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-13.1 Снять роль Admin с последнего администратора" id="5491cd90-07d2-4cff-bdaa-f408cbf8f9f5" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.013">
+    <testcase name="Статус 409" time="0.013" classname="02UsersTc131Admin"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.013" classname="02UsersTc131Admin"/>
+    <testcase name="Сообщение о последнем администраторе" time="0.013" classname="02UsersTc131Admin"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-14.1 user_1 открывает администрирование" id="3adf43d1-2dfb-49a3-be75-2297c0482b41" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.013">
+    <testcase name="Статус 403" time="0.013" classname="02UsersTc141User1"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-14.2 user_1 блокирует user_2" id="2b49fa50-2af9-4310-b56f-317510c9c8a5" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.004">
+    <testcase name="Статус 403" time="0.004" classname="02UsersTc142User1User2"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-14.3 Без токена" id="9152c0ad-4cc1-4e49-8fbb-059a6f713341" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.009">
+    <testcase name="Статус 401" time="0.009" classname="02UsersTc143"/>
+  </testsuite>
+  <testsuite name="02 Users / Вход user_deleted" id="18aba4ad-5816-41d5-a98e-9e7cf1c8a335" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.136">
+    <testcase name="Статус 200" time="0.136" classname="02UsersUserDeleted"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-15.1 Удаление своего аккаунта" id="2ef76f8b-db34-4846-9767-ccd0654de550" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.361">
+    <testcase name="Статус 204" time="0.361" classname="02UsersTc151"/>
+  </testsuite>
+  <testsuite name="02 Users / TC-15.3 Вход удалённым пользователем" id="a52e7dfb-528e-4cf7-bab8-ded9576b551d" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.012">
+    <testcase name="Статус 401" time="0.012" classname="02UsersTc153"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-18.1 Список публичных комнат" id="ad0dc888-0f9d-497a-b473-c07aba6da8ee" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.018">
+    <testcase name="Статус 200" time="0.018" classname="03RoomsTc181"/>
+    <testcase name="Две публичные комнаты, приватной нет" time="0.018" classname="03RoomsTc181"/>
+    <testcase name="Rock &amp; Metal Bar — 8 участников, Lo-Fi Study — 0" time="0.018" classname="03RoomsTc181"/>
+  </testsuite>
+  <testsuite name="03 Rooms / Вход user_3" id="a1798df7-5f57-4f77-b4ef-dcae7ab7b9c3" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.168">
+    <testcase name="Статус 200" time="0.168" classname="03RoomsUser3"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-16.1 Создание комнаты Indie Night" id="b9948f3a-1882-4c10-bd6a-fb13a63e4601" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.133">
+    <testcase name="Статус 201" time="0.133" classname="03RoomsTc161IndieNight"/>
+    <testcase name="Location указывает на комнату" time="0.133" classname="03RoomsTc161IndieNight"/>
+    <testcase name="Инвайт-код из 6 символов допустимого алфавита" time="0.133" classname="03RoomsTc161IndieNight"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-16.1 Создатель — владелец" id="ee1e8100-9717-481b-b39d-087204a61e56" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.062">
+    <testcase name="Статус 200" time="0.062" classname="03RoomsTc161"/>
+    <testcase name="Роль Owner" time="0.062" classname="03RoomsTc161"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-17.1 Неверный код JZZ7Q1" id="87664035-4ac9-4181-a935-da66199b7a7c" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.036">
+    <testcase name="Статус 404" time="0.036" classname="03RoomsTc171Jzz7Q1"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.036" classname="03RoomsTc171Jzz7Q1"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-17.2 Код строчными jzz7q2" id="c53b4a44-6ec8-4a67-aec3-f5429e7605fb" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.160">
+    <testcase name="Статус 200" time="0.160" classname="03RoomsTc172Jzz7Q2"/>
+    <testcase name="Jazz Lounge, роль Contributor" time="0.160" classname="03RoomsTc172Jzz7Q2"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-17.3 Повторный вход по JZZ7Q2" id="35350f5c-5973-4c1c-bb0e-b8ed6b788e38" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.031">
+    <testcase name="Статус 200" time="0.031" classname="03RoomsTc173Jzz7Q2"/>
+    <testcase name="Роль не изменилась" time="0.031" classname="03RoomsTc173Jzz7Q2"/>
+  </testsuite>
+  <testsuite name="03 Rooms / Вход user_mod" id="ddc014bf-16dd-40a9-b550-7a64091897ac" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.158">
+    <testcase name="Статус 200" time="0.158" classname="03RoomsUserMod"/>
+  </testsuite>
+  <testsuite name="03 Rooms / Вход user_spammer" id="7ea216a0-fa3b-4ba3-8587-635d97938701" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.146">
+    <testcase name="Статус 200" time="0.146" classname="03RoomsUserSpammer"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-19.1 Участник банит модератора" id="30a19e29-4c5d-4c8f-9230-a108fcb1e9a3" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.069">
+    <testcase name="Статус 403" time="0.069" classname="03RoomsTc191"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.069" classname="03RoomsTc191"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-19.2 Модератор банит спамера на 10 минут" id="fdebfee1-9ec2-4473-8b63-659c1458829e" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.051">
+    <testcase name="Статус 204" time="0.051" classname="03RoomsTc19210"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-19.3 Забаненный входит снова" id="2687055d-bf5d-4872-ad73-c9e654c24f21" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.026">
+    <testcase name="Статус 403" time="0.026" classname="03RoomsTc193"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.026" classname="03RoomsTc193"/>
+    <testcase name="Указано время окончания бана" time="0.026" classname="03RoomsTc193"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-20.1 user_1 входит в Lo-Fi Study" id="d386d8f1-ce08-4ebf-abcb-3c58cf357591" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.032">
+    <testcase name="Статус 200" time="0.032" classname="03RoomsTc201User1LoFiStudy"/>
+    <testcase name="Роль Contributor" time="0.032" classname="03RoomsTc201User1LoFiStudy"/>
+  </testsuite>
+  <testsuite name="03 Rooms / TC-20.2 Членство в Rock &amp; Metal Bar закрыто" id="25fd1aac-f1a6-4567-be2f-1d001f7a56b4" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.009">
+    <testcase name="Статус 200" time="0.009" classname="03RoomsTc202RockAmpMetalBar"/>
+    <testcase name="В Rock &amp; Metal Bar user_1 больше не участник" time="0.009" classname="03RoomsTc202RockAmpMetalBar"/>
+  </testsuite>
+  <testsuite name="03 Rooms / Возврат user_1 в Rock &amp; Metal Bar" id="43166126-f0e9-4d6e-8034-533c02a24021" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.110">
+    <testcase name="Статус 200" time="0.110" classname="03RoomsUser1RockAmpMetalBar"/>
+  </testsuite>
+  <testsuite name="04 Queue / Вход user_5" id="41ffd567-f4a5-4960-94b2-1181ad9e15e6" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.161">
+    <testcase name="Статус 200" time="0.161" classname="04QueueUser5"/>
+  </testsuite>
+  <testsuite name="04 Queue / Поиск «Billie» в каталоге" id="2969fc22-4d26-4183-bce5-fcfdd29e2764" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.184">
+    <testcase name="Статус 200" time="0.184" classname="04QueueBillie"/>
+  </testsuite>
+  <testsuite name="04 Queue / Поиск «Blinding» в каталоге" id="e9f68421-c393-448a-b60d-832024aa902d" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.029">
+    <testcase name="Статус 200" time="0.029" classname="04QueueBlinding"/>
+  </testsuite>
+  <testsuite name="04 Queue / Поиск «Despacito» в каталоге" id="06875abb-c4a6-4612-a019-a6f21030a22d" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.011">
+    <testcase name="Статус 200" time="0.011" classname="04QueueDespacito"/>
+  </testsuite>
+  <testsuite name="04 Queue / Поиск «Bohemian» в каталоге" id="eadbf8f8-7a72-49fc-a758-170295bcd40a" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.008">
+    <testcase name="Статус 200" time="0.008" classname="04QueueBohemian"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-22.1 user_5 добавляет трек 1" id="436830b9-bdfa-4317-b1b0-e1d82818e6f6" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.217">
+    <testcase name="Статус 201" time="0.217" classname="04QueueTc221User51"/>
+    <testcase name="Рейтинг +1 (голос автора)" time="0.217" classname="04QueueTc221User51"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-22.1 user_5 добавляет трек 2" id="b901bf65-8f9c-4b40-8cf9-b1c50acaa1df" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.087">
+    <testcase name="Статус 201" time="0.087" classname="04QueueTc221User52"/>
+    <testcase name="Рейтинг +1 (голос автора)" time="0.087" classname="04QueueTc221User52"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-22.1 user_5 добавляет трек 3" id="df2efd60-f885-4ac0-a42c-5085d711f152" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.096">
+    <testcase name="Статус 201" time="0.096" classname="04QueueTc221User53"/>
+    <testcase name="Рейтинг +1 (голос автора)" time="0.096" classname="04QueueTc221User53"/>
+  </testsuite>
+  <testsuite name="04 Queue / Версия очереди перед 4-м треком" id="57bcb1f7-4cf7-4035-9327-b52d1bc213bd" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.049">
+    <testcase name="Статус 200" time="0.049" classname="04Queue4"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-22.2 Четвёртый трек" id="6e4eddcd-7c50-4975-b96d-f43b4e91451b" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.042">
+    <testcase name="Статус 409" time="0.042" classname="04QueueTc222"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.042" classname="04QueueTc222"/>
+    <testcase name="Сообщение о лимите 3 трека" time="0.042" classname="04QueueTc222"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-22.3 Версия очереди не изменилась" id="d4970c3f-6289-43e1-b232-121aa01bfb6c" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.028">
+    <testcase name="Статус 200" time="0.028" classname="04QueueTc223"/>
+    <testcase name="QUEUE_VERSION не вырос" time="0.028" classname="04QueueTc223"/>
+  </testsuite>
+  <testsuite name="04 Queue / Вход user_4" id="141e81d2-391b-4e0a-881d-08e170200d27" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.134">
+    <testcase name="Статус 200" time="0.134" classname="04QueueUser4"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-23.1 Голос 1 за Numb" id="4fbfe145-d8e0-46d7-b644-7ea9b92ceb1f" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.191">
+    <testcase name="Статус 200" time="0.191" classname="04QueueTc2311Numb"/>
+    <testcase name="Рейтинг +3" time="0.191" classname="04QueueTc2311Numb"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-23.2 Голос 1 за Numb" id="662bb384-3fc4-475b-b321-f155ad92d92f" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.084">
+    <testcase name="Статус 200" time="0.084" classname="04QueueTc2321Numb"/>
+    <testcase name="Рейтинг +3" time="0.084" classname="04QueueTc2321Numb"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-23.3 Голос -1 за Numb" id="73094f8f-122b-498b-a12e-8fcc16713496" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.047">
+    <testcase name="Статус 200" time="0.047" classname="04QueueTc2331Numb"/>
+    <testcase name="Рейтинг +1" time="0.047" classname="04QueueTc2331Numb"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-23.4 Голос 0 за Numb" id="8f29da25-a851-48e9-aea7-873bf6afcdc9" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.051">
+    <testcase name="Статус 200" time="0.051" classname="04QueueTc2340Numb"/>
+    <testcase name="Рейтинг +2" time="0.051" classname="04QueueTc2340Numb"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-23 Некорректное значение голоса" id="840053fc-2187-4e23-8747-68c46021385b" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.020">
+    <testcase name="Статус 400" time="0.020" classname="04QueueTc23"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.020" classname="04QueueTc23"/>
+  </testsuite>
+  <testsuite name="04 Queue / Подготовка TC-24: user_3 входит в Rock &amp; Metal Bar" id="a7467e4d-cffa-4239-ab5b-79e35c247156" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.066">
+    <testcase name="Статус 200" time="0.066" classname="04QueueTc24User3RockAmpMetalBar"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-24.1 Голос −1 при рейтинге −4" id="4becf4ef-9469-41be-8b32-d0f4536dd90b" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.087">
+    <testcase name="Статус 200" time="0.087" classname="04QueueTc24114"/>
+    <testcase name="Рейтинг −5, статус AutoRemoved" time="0.087" classname="04QueueTc24114"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-24.1 Трек исчез из очереди" id="3722e962-7fba-4e8d-906e-d64db39a868e" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.045">
+    <testcase name="Статус 200" time="0.045" classname="04QueueTc241"/>
+    <testcase name="Never Gonna Give You Up нет в очереди" time="0.045" classname="04QueueTc241"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-25.1 Contributor закрепляет Numb" id="ebd083c8-314f-456a-a709-db9504cc11df" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.034">
+    <testcase name="Статус 403" time="0.034" classname="04QueueTc251ContributorNumb"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.034" classname="04QueueTc251ContributorNumb"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-25.2 Модератор закрепляет Numb" id="4c408e56-a40b-4de6-8e66-d43f921c1170" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.052">
+    <testcase name="Статус 204" time="0.052" classname="04QueueTc252Numb"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-25.2 Порядок: закреплённые первыми" id="cca76a08-839e-4564-98fe-ef2c9a581049" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.037">
+    <testcase name="Статус 200" time="0.037" classname="04QueueTc252"/>
+    <testcase name="Enter Sandman, затем Numb, затем Smells Like Teen Spirit" time="0.037" classname="04QueueTc252"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-25.3 Модератор открепляет Enter Sandman" id="58b00360-7b72-4180-a6df-492cf069a414" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.057">
+    <testcase name="Статус 204" time="0.057" classname="04QueueTc253EnterSandman"/>
+  </testsuite>
+  <testsuite name="04 Queue / TC-25.3 Порядок после открепления" id="e2ac2a16-75c1-4f04-8fda-53c0426a0a3e" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.034">
+    <testcase name="Статус 200" time="0.034" classname="04QueueTc253"/>
+    <testcase name="Numb, Smells Like Teen Spirit (+5), потом Enter Sandman (+1)" time="0.034" classname="04QueueTc253"/>
+  </testsuite>
+  <testsuite name="05 Playback / Текущий трек и первая позиция очереди" id="02970c29-0e7a-4b06-ad0f-acb23869eec2" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.024">
+    <testcase name="Статус 200" time="0.024" classname="05Playback"/>
+    <testcase name="Сейчас играет трек" time="0.024" classname="05Playback"/>
+  </testsuite>
+  <testsuite name="05 Playback / TC-26.1 Голос за пропуск: user_owner" id="05ff61b3-fe7c-4e62-9b57-c864b13ae668" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.090">
+    <testcase name="Статус 200" time="0.090" classname="05PlaybackTc261UserOwner"/>
+    <testcase name="Требуется строго больше половины онлайн" time="0.090" classname="05PlaybackTc261UserOwner"/>
+    <testcase name="Порог не достигнут — трек продолжает играть" time="0.090" classname="05PlaybackTc261UserOwner"/>
+  </testsuite>
+  <testsuite name="05 Playback / TC-26.1 Голос за пропуск: user_mod" id="68af66b0-2f5e-41fd-ac21-c6abca8977d6" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.041">
+    <testcase name="Статус 200" time="0.041" classname="05PlaybackTc261UserMod"/>
+    <testcase name="Требуется строго больше половины онлайн" time="0.041" classname="05PlaybackTc261UserMod"/>
+    <testcase name="Порог не достигнут — трек продолжает играть" time="0.041" classname="05PlaybackTc261UserMod"/>
+  </testsuite>
+  <testsuite name="05 Playback / TC-26.1 Повторный голос не учитывается" id="60f63908-a4ac-4100-9325-b2b001edb404" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.057">
+    <testcase name="Статус 200" time="0.057" classname="05PlaybackTc261"/>
+    <testcase name="Голосов по-прежнему 2" time="0.057" classname="05PlaybackTc261"/>
+  </testsuite>
+  <testsuite name="05 Playback / TC-26.1 Голос за пропуск: user_1" id="a66c9876-47f7-453d-af79-e6349111e35b" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.049">
+    <testcase name="Статус 200" time="0.049" classname="05PlaybackTc261User1"/>
+    <testcase name="Требуется строго больше половины онлайн" time="0.049" classname="05PlaybackTc261User1"/>
+    <testcase name="Порог не достигнут — трек продолжает играть" time="0.049" classname="05PlaybackTc261User1"/>
+  </testsuite>
+  <testsuite name="05 Playback / TC-26.1 Голос за пропуск: user_5" id="0d16c0bf-3a17-4eb4-89c6-1dbb685bbb8e" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.055">
+    <testcase name="Статус 200" time="0.055" classname="05PlaybackTc261User5"/>
+    <testcase name="Требуется строго больше половины онлайн" time="0.055" classname="05PlaybackTc261User5"/>
+    <testcase name="Порог не достигнут — трек продолжает играть" time="0.055" classname="05PlaybackTc261User5"/>
+  </testsuite>
+  <testsuite name="05 Playback / TC-26.2 Голос большинства: user_4" id="1f8cfda1-1b26-470e-a370-0997d6778536" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.101">
+    <testcase name="Статус 200" time="0.101" classname="05PlaybackTc262User4"/>
+    <testcase name="Требуется строго больше половины онлайн" time="0.101" classname="05PlaybackTc262User4"/>
+    <testcase name="Трек пропущен" time="0.101" classname="05PlaybackTc262User4"/>
+  </testsuite>
+  <testsuite name="05 Playback / TC-26.2 Играет первая позиция очереди" id="13530ecd-b2c8-4ad5-ac0d-28ae75f46b82" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.037">
+    <testcase name="Статус 200" time="0.037" classname="05PlaybackTc262"/>
+    <testcase name="Новый текущий трек — бывшая первая позиция" time="0.037" classname="05PlaybackTc262"/>
+    <testcase name="Пропущенный трек больше не играет и не в очереди" time="0.037" classname="05PlaybackTc262"/>
+  </testsuite>
+  <testsuite name="05 Playback / Пропуск модератором без голосования (Contributor)" id="e2b10fe8-4ce2-4e71-bc72-3e28a6af0515" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.047">
+    <testcase name="Статус 403" time="0.047" classname="05PlaybackContributor"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.047" classname="05PlaybackContributor"/>
+  </testsuite>
+  <testsuite name="06 Catalog / TC-34.1 Поиск thunder" id="bb7da93d-9703-4ae6-9497-c487617083ab" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.009">
+    <testcase name="Статус 200" time="0.009" classname="06CatalogTc341Thunder"/>
+    <testcase name="Найден Thunderstruck" time="0.009" classname="06CatalogTc341Thunder"/>
+  </testsuite>
+  <testsuite name="06 Catalog / TC-34.2 Поиск по исполнителю GUNS N" id="938b0f73-99d9-42b2-a185-146ba8c95959" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.021">
+    <testcase name="Статус 200" time="0.021" classname="06CatalogTc342GunsN"/>
+    <testcase name="Найдены оба трека Guns N' Roses" time="0.021" classname="06CatalogTc342GunsN"/>
+  </testsuite>
+  <testsuite name="06 Catalog / TC-34.3 Пустой запрос" id="1418c7be-675c-4094-85ec-67fbec4cbc19" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.005">
+    <testcase name="Статус 400" time="0.005" classname="06CatalogTc343"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.005" classname="06CatalogTc343"/>
+  </testsuite>
+  <testsuite name="06 Catalog / TC-36.1 YouTube недоступен: thunder из каталога" id="68e5d75e-dc4a-4062-bca5-4fdd56b53761" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.006">
+    <testcase name="Статус 200" time="0.006" classname="06CatalogTc361YouTubeThunder"/>
+    <testcase name="externalSearchAvailable = false, локальный результат есть" time="0.006" classname="06CatalogTc361YouTubeThunder"/>
+  </testsuite>
+  <testsuite name="06 Catalog / TC-36.2 YouTube недоступен: неизвестная песня" id="a86f2811-879d-46b4-adc0-3f08329d81a5" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.009">
+    <testcase name="Статус 200" time="0.009" classname="06CatalogTc362YouTube"/>
+    <testcase name="Пустой список и признак недоступности" time="0.009" classname="06CatalogTc362YouTube"/>
+  </testsuite>
+  <testsuite name="07 Audit / TC-30.1 Создание комнаты с X-Correlation-Id" id="94187ac8-1f3d-4460-8adf-01a455fcc2ca" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.030">
+    <testcase name="Статус 201" time="0.030" classname="07AuditTc301XCorrelationId"/>
+    <testcase name="Заголовок X-Correlation-Id возвращён" time="0.030" classname="07AuditTc301XCorrelationId"/>
+  </testsuite>
+  <testsuite name="07 Audit / TC-30.2 GET /api/rooms" id="8fbc6405-9ec8-4717-8a99-51699677a755" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.014">
+    <testcase name="Статус 200" time="0.014" classname="07AuditTc302GetApiRooms"/>
+  </testsuite>
+  <testsuite name="07 Audit / TC-30.3 Запись Room.Create в журнале" id="1251e15a-d72b-48a4-8c95-c90e825eb843" timestamp="2026-10-19T21:31:51.993Z" tests="3" failures="0" errors="0" time="0.074">
+    <testcase name="Статус 200" time="0.074" classname="07AuditTc303RoomCreate"/>
+    <testcase name="Есть запись с CorrelationId tc30-check" time="0.074" classname="07AuditTc303RoomCreate"/>
+    <testcase name="Метод POST, путь без query, код 201, IP и длительность заполнены" time="0.074" classname="07AuditTc303RoomCreate"/>
+  </testsuite>
+  <testsuite name="07 Audit / TC-06.2 / TC-32.1 Фильтр Auth.LoginFailed" id="fadecd27-a3ba-4c77-aba5-d34e0dd155c6" timestamp="2026-10-19T21:31:51.993Z" tests="4" failures="0" errors="0" time="0.056">
+    <testcase name="Статус 200" time="0.056" classname="07AuditTc062Tc321AuthLoginFailed"/>
+    <testcase name="Только неудачные входы" time="0.056" classname="07AuditTc062Tc321AuthLoginFailed"/>
+    <testcase name="Новые первыми" time="0.056" classname="07AuditTc062Tc321AuthLoginFailed"/>
+    <testcase name="TC-06.2 Код 401, есть IP и CorrelationId, пароля нет" time="0.056" classname="07AuditTc062Tc321AuthLoginFailed"/>
+  </testsuite>
+  <testsuite name="07 Audit / TC-32.2 Первая страница по 3" id="c41335ac-8255-4ba1-b58d-ce5f6ee1fcc9" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.036">
+    <testcase name="Статус 200" time="0.036" classname="07AuditTc3223"/>
+    <testcase name="3 записи и курсор следующей страницы" time="0.036" classname="07AuditTc3223"/>
+  </testsuite>
+  <testsuite name="07 Audit / TC-32.2 Следующая страница по курсору" id="333153b7-4498-470c-9d82-40af7a87ca6e" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.031">
+    <testcase name="Статус 200" time="0.031" classname="07AuditTc322"/>
+    <testcase name="Страницы не пересекаются и идут по убыванию id" time="0.031" classname="07AuditTc322"/>
+  </testsuite>
+  <testsuite name="07 Audit / TC-32.3 Журнал от имени user_1" id="c834e0f5-00cb-49b3-87b7-77d75821217c" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.004">
+    <testcase name="Статус 403" time="0.004" classname="07AuditTc323User1"/>
+  </testsuite>
+  <testsuite name="08 Security / TC-10.2 Подключение к Hub без токена" id="48536957-f9cf-4050-a344-49f2d94a6dec" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.006">
+    <testcase name="Статус 401" time="0.006" classname="08SecurityTc102Hub"/>
+  </testsuite>
+  <testsuite name="08 Security / TC-10.1 Подключение к Hub с токеном в query" id="00402da5-071a-4b1c-bd47-0870a842163f" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.010">
+    <testcase name="Статус 200" time="0.010" classname="08SecurityTc101HubQuery"/>
+    <testcase name="Выдан connectionToken" time="0.010" classname="08SecurityTc101HubQuery"/>
+  </testsuite>
+  <testsuite name="08 Security / TC-10.3 Токен в query для REST не принимается" id="cda08315-a484-44e9-a3ad-07b23245281f" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.003">
+    <testcase name="Статус 401" time="0.003" classname="08SecurityTc103QueryRest"/>
+  </testsuite>
+  <testsuite name="08 Security / TC-37.1 Очередь чужой приватной комнаты" id="1bbcaefa-86d5-4e68-8d31-b9e1850a88a1" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.008">
+    <testcase name="Статус 404" time="0.008" classname="08SecurityTc371"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.008" classname="08SecurityTc371"/>
+  </testsuite>
+  <testsuite name="08 Security / TC-37.2 Голос в чужой приватной комнате" id="9026facc-bca0-48c5-a10e-e603b5e41bad" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.011">
+    <testcase name="Статус 404" time="0.011" classname="08SecurityTc372"/>
+    <testcase name="Ошибка в формате ProblemDetails" time="0.011" classname="08SecurityTc372"/>
+  </testsuite>
+  <testsuite name="08 Security / TC-37.3 Перебор roomId: 0" id="b79acd33-c0f4-4418-8281-b3411cae86e4" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.011">
+    <testcase name="Статус 404" time="0.011" classname="08SecurityTc373RoomId0"/>
+  </testsuite>
+  <testsuite name="08 Security / TC-37.3 Перебор roomId: 999999" id="c083fb08-6c9e-43d6-bbfe-8ee125750948" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.016">
+    <testcase name="Статус 404" time="0.016" classname="08SecurityTc373RoomId999999"/>
+  </testsuite>
+  <testsuite name="08 Security / TC-38.2 Некорректный JSON" id="7aa7a3e2-0545-45d5-b058-65376324e039" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.022">
+    <testcase name="Статус 400" time="0.022" classname="08SecurityTc382Json"/>
+    <testcase name="Нет деталей реализации" time="0.022" classname="08SecurityTc382Json"/>
+  </testsuite>
+  <testsuite name="08 Security / Несуществующий эндпоинт API" id="0f39670e-cc48-42ec-b5c7-146b69307576" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.018">
+    <testcase name="Статус 404" time="0.018" classname="08SecurityApi"/>
+  </testsuite>
+  <testsuite name="08 Security / Просроченный/подделанный токен" id="ae5ed5ff-c174-44dc-b123-5c6d4d09f4b3" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.015">
+    <testcase name="Статус 401" time="0.015" classname="08Security"/>
+  </testsuite>
+  <testsuite name="08 Security / Повышение прав через тело запроса игнорируется" id="3434c545-2d52-494b-8238-bbf97614e2fb" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.143">
+    <testcase name="Статус 201" time="0.143" classname="08Security"/>
+  </testsuite>
+  <testsuite name="08 Security / Вход sneaky_user" id="83c98c32-00ed-4839-9867-b4d35c04bbd1" timestamp="2026-10-19T21:31:51.993Z" tests="2" failures="0" errors="0" time="0.127">
+    <testcase name="Статус 200" time="0.127" classname="08SecuritySneakyUser"/>
+    <testcase name="Роль осталась User" time="0.127" classname="08SecuritySneakyUser"/>
+  </testsuite>
+  <testsuite name="08 Security / Ограничение частоты входа (rate limit)" id="19f7d1dc-a0ad-4fea-b984-2a92f3c8503b" timestamp="2026-10-19T21:31:51.993Z" tests="1" failures="0" errors="0" time="0.006">
+    <testcase name="Статус один из [401, 429]" time="0.006" classname="08SecurityRateLimit"/>
+  </testsuite>
+</testsuites>

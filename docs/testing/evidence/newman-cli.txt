@@ -1,0 +1,616 @@
+(node:32088) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+newman
+
+SoundShare API
+
+□ 00 Подготовка
+└ Вход admin
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 746B, 979ms]
+  √  Статус 200
+
+└ Id пользователей (admin)
+  GET http://127.0.0.1:5290/api/admin/users?pageSize=100 [200 OK, 1.98kB, 491ms]
+  √  Статус 200
+  √  В демо-наборе есть user_1 и admin
+
+└ Id публичных комнат
+  GET http://127.0.0.1:5290/api/rooms [200 OK, 300B, 282ms]
+  √  Статус 200
+
+└ Вход user_owner
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 751B, 214ms]
+  √  Статус 200
+
+└ Id позиций очереди Rock & Metal Bar
+  GET http://127.0.0.1:5290/api/rooms/1/queue [200 OK, 1.55kB, 198ms]
+  √  Статус 200
+  √  ETag с версией очереди
+
+□ 01 Auth
+└ TC-01.1 Регистрация new_user
+  POST http://127.0.0.1:5290/api/auth/register [201 Created, 261B, 244ms]
+  √  Статус 201
+  √  В ответе id и username, без пароля и хеша
+  √  Location указывает на пользователя
+
+└ Вход new_user
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 750B, 143ms]
+  √  Статус 200
+  ┌
+  │ `Using "CryptoJS" is deprecated. Use "require('crypto-
+  │ js')" instead.`
+  └
+  √  TC-01.2 Роль нового пользователя — User
+
+└ TC-02.1 Имя занято в другом регистре
+  POST http://127.0.0.1:5290/api/auth/register [409 Conflict, 421B, 41ms]
+  √  Статус 409
+  √  Ошибка в формате ProblemDetails
+  √  Сообщение о занятом имени
+
+└ TC-02.2 Email занят в другом регистре
+  POST http://127.0.0.1:5290/api/auth/register [409 Conflict, 419B, 16ms]
+  √  Статус 409
+  √  Ошибка в формате ProblemDetails
+  √  Сообщение о занятом email
+
+└ TC-03 Некорректные данные: имя короче 3
+  POST http://127.0.0.1:5290/api/auth/register [400 Bad Request, 620B, 34ms]
+  √  Статус 400
+  √  Ошибка в формате ProblemDetails
+  √  Ошибка поля Username
+
+└ TC-03 Некорректные данные: имя с пробелом
+  POST http://127.0.0.1:5290/api/auth/register [400 Bad Request, 533B, 9ms]
+  √  Статус 400
+  √  Ошибка в формате ProblemDetails
+  √  Ошибка поля Username
+
+└ TC-03 Некорректные данные: email без @
+  POST http://127.0.0.1:5290/api/auth/register [400 Bad Request, 520B, 6ms]
+  √  Статус 400
+  √  Ошибка в формате ProblemDetails
+  √  Ошибка поля Email
+
+└ TC-03 Некорректные данные: пароль короче 8
+  POST http://127.0.0.1:5290/api/auth/register [400 Bad Request, 623B, 5ms]
+  √  Статус 400
+  √  Ошибка в формате ProblemDetails
+  √  Ошибка поля Password
+
+└ TC-03 Некорректные данные: пароль без цифр
+  POST http://127.0.0.1:5290/api/auth/register [400 Bad Request, 511B, 4ms]
+  √  Статус 400
+  √  Ошибка в формате ProblemDetails
+  √  Ошибка поля Password
+
+└ TC-03 Некорректные данные: пустые поля
+  POST http://127.0.0.1:5290/api/auth/register [400 Bad Request, 1.12kB, 6ms]
+  √  Статус 400
+  √  Ошибка в формате ProblemDetails
+  √  Ошибка поля Username
+
+└ Вход user_1
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 746B, 140ms]
+  √  Статус 200
+  ┌
+  │ `Using "CryptoJS" is deprecated. Use "require('crypto-
+  │ js')" instead.`
+  └
+  √  TC-05.2 Claims sub, unique_name, role, jti, iat, exp
+  √  TC-05.2 Время жизни access-токена 900 с
+  √  TC-05.3 Cookie rt: HttpOnly, Secure, SameSite=Strict, Path=/api/auth
+  √  TC-05.3 Cookie живёт 7 дней
+
+└ TC-06.1 Вход с неверным паролем
+  POST http://127.0.0.1:5290/api/auth/login [401 Unauthorized, 436B, 129ms]
+  √  Статус 401
+  √  Ошибка в формате ProblemDetails
+  √  Токены не выданы
+  √  Сообщение не уточняет, что неверно
+
+└ TC-07.1 Обновление токена (R1 → R2)
+  POST http://127.0.0.1:5290/api/auth/refresh [200 OK, 746B, 102ms]
+  √  Статус 200
+  √  Выдана новая cookie R2
+
+└ TC-07.2 Повторное использование R1
+  POST http://127.0.0.1:5290/api/auth/refresh [401 Unauthorized, 436B, 47ms]
+  √  Статус 401
+
+└ TC-07.2 R2 тоже отозван после обнаружения повтора
+  POST http://127.0.0.1:5290/api/auth/refresh [401 Unauthorized, 436B, 11ms]
+  √  Статус 401
+
+└ Вход user_1
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 746B, 138ms]
+  √  Статус 200
+
+└ Вход user_2
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 746B, 149ms]
+  √  Статус 200
+
+└ TC-08.1 Выход
+  POST http://127.0.0.1:5290/api/auth/logout [204 No Content, 240B, 34ms]
+  √  Статус 204
+  √  Cookie rt удалена (истёкшая)
+
+└ TC-08.2 Refresh после выхода
+  POST http://127.0.0.1:5290/api/auth/refresh [401 Unauthorized, 436B, 13ms]
+  √  Статус 401
+
+□ 02 Users
+└ Вход user_6
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 746B, 147ms]
+  √  Статус 200
+
+└ TC-09.1 Администратор блокирует user_6
+  PUT http://127.0.0.1:5290/api/admin/users/9/block [204 No Content, 133B, 78ms]
+  √  Статус 204
+
+└ TC-09.2 user_6 обновляет токен
+  POST http://127.0.0.1:5290/api/auth/refresh [401 Unauthorized, 436B, 27ms]
+  √  Статус 401
+
+└ TC-09.3 user_6 входит с верным паролем
+  POST http://127.0.0.1:5290/api/auth/login [403 Forbidden, 433B, 134ms]
+  √  Статус 403
+  √  Ошибка в формате ProblemDetails
+  √  Сообщение о блокировке
+
+└ TC-11.1 Первая страница по 5
+  GET http://127.0.0.1:5290/api/admin/users?page=1&pageSize=5 [200 OK, 905B, 13ms]
+  √  Статус 200
+  √  5 записей и есть следующая страница
+  √  В ответе нет хешей паролей
+
+└ TC-11.2 Фильтр role=Admin
+  GET http://127.0.0.1:5290/api/admin/users?role=Admin [200 OK, 373B, 47ms]
+  √  Статус 200
+  √  Только администраторы, есть admin
+
+└ TC-11.3 Фильтр isActive=false
+  GET http://127.0.0.1:5290/api/admin/users?isActive=false [200 OK, 375B, 40ms]
+  √  Статус 200
+  √  Список содержит user_6
+
+└ TC-12.1 Создание second_admin
+  POST http://127.0.0.1:5290/api/admin/users [201 Created, 401B, 249ms]
+  √  Статус 201
+  √  Location указывает на пользователя
+
+└ Вход second_admin
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 756B, 140ms]
+  √  Статус 200
+  ┌
+  │ `Using "CryptoJS" is deprecated. Use "require('crypto-
+  │ js')" instead.`
+  └
+  √  TC-12.2 claim role = Admin
+
+└ TC-12.2 second_admin видит список пользователей
+  GET http://127.0.0.1:5290/api/admin/users [200 OK, 2.26kB, 9ms]
+  √  Статус 200
+
+└ Подготовка TC-13: снять роль с second_admin
+  PATCH http://127.0.0.1:5290/api/admin/users/15/role [204 No Content, 133B, 62ms]
+  √  Статус 204
+
+└ TC-13.1 Снять роль Admin с последнего администратора
+  PATCH http://127.0.0.1:5290/api/admin/users/1/role [409 Conflict, 452B, 13ms]
+  √  Статус 409
+  √  Ошибка в формате ProblemDetails
+  √  Сообщение о последнем администраторе
+
+└ TC-14.1 user_1 открывает администрирование
+  GET http://127.0.0.1:5290/api/admin/users [403 Forbidden, 377B, 13ms]
+  √  Статус 403
+
+└ TC-14.2 user_1 блокирует user_2
+  PUT http://127.0.0.1:5290/api/admin/users/5/block [403 Forbidden, 377B, 4ms]
+  √  Статус 403
+
+└ TC-14.3 Без токена
+  GET http://127.0.0.1:5290/api/admin/users [401 Unauthorized, 409B, 9ms]
+  √  Статус 401
+
+└ Вход user_deleted
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 755B, 136ms]
+  √  Статус 200
+
+└ TC-15.1 Удаление своего аккаунта
+  DELETE http://127.0.0.1:5290/api/users/me [204 No Content, 133B, 361ms]
+  √  Статус 204
+
+└ TC-15.3 Вход удалённым пользователем
+  POST http://127.0.0.1:5290/api/auth/login [401 Unauthorized, 436B, 12ms]
+  √  Статус 401
+
+□ 03 Rooms
+└ TC-18.1 Список публичных комнат
+  GET http://127.0.0.1:5290/api/rooms [200 OK, 300B, 18ms]
+  √  Статус 200
+  √  Две публичные комнаты, приватной нет
+  √  Rock & Metal Bar — 8 участников, Lo-Fi Study — 0
+
+└ Вход user_3
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 746B, 168ms]
+  √  Статус 200
+
+└ TC-16.1 Создание комнаты Indie Night
+  POST http://127.0.0.1:5290/api/rooms [201 Created, 301B, 133ms]
+  √  Статус 201
+  √  Location указывает на комнату
+  √  Инвайт-код из 6 символов допустимого алфавита
+
+└ TC-16.1 Создатель — владелец
+  GET http://127.0.0.1:5290/api/rooms/4 [200 OK, 303B, 62ms]
+  √  Статус 200
+  √  Роль Owner
+
+└ TC-17.1 Неверный код JZZ7Q1
+  POST http://127.0.0.1:5290/api/rooms/join [404 Not Found, 413B, 36ms]
+  √  Статус 404
+  √  Ошибка в формате ProblemDetails
+
+└ TC-17.2 Код строчными jzz7q2
+  POST http://127.0.0.1:5290/api/rooms/join [200 OK, 308B, 160ms]
+  √  Статус 200
+  √  Jazz Lounge, роль Contributor
+
+└ TC-17.3 Повторный вход по JZZ7Q2
+  POST http://127.0.0.1:5290/api/rooms/join [200 OK, 308B, 31ms]
+  √  Статус 200
+  √  Роль не изменилась
+
+└ Вход user_mod
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 748B, 158ms]
+  √  Статус 200
+
+└ Вход user_spammer
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 755B, 146ms]
+  √  Статус 200
+
+└ TC-19.1 Участник банит модератора
+  POST http://127.0.0.1:5290/api/rooms/1/bans [403 Forbidden, 441B, 69ms]
+  √  Статус 403
+  √  Ошибка в формате ProblemDetails
+
+└ TC-19.2 Модератор банит спамера на 10 минут
+  POST http://127.0.0.1:5290/api/rooms/1/bans [204 No Content, 133B, 51ms]
+  √  Статус 204
+
+└ TC-19.3 Забаненный входит снова
+  POST http://127.0.0.1:5290/api/rooms/1/members [403 Forbidden, 455B, 26ms]
+  √  Статус 403
+  √  Ошибка в формате ProblemDetails
+  √  Указано время окончания бана
+
+└ TC-20.1 user_1 входит в Lo-Fi Study
+  POST http://127.0.0.1:5290/api/rooms/2/members [200 OK, 309B, 32ms]
+  √  Статус 200
+  √  Роль Contributor
+
+└ TC-20.2 Членство в Rock & Metal Bar закрыто
+  GET http://127.0.0.1:5290/api/rooms/1 [200 OK, 303B, 9ms]
+  √  Статус 200
+  √  В Rock & Metal Bar user_1 больше не участник
+
+└ Возврат user_1 в Rock & Metal Bar
+  POST http://127.0.0.1:5290/api/rooms/1/members [200 OK, 314B, 110ms]
+  √  Статус 200
+
+□ 04 Queue
+└ Вход user_5
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 746B, 161ms]
+  √  Статус 200
+
+└ Поиск «Billie» в каталоге
+  GET http://127.0.0.1:5290/api/tracks?query=Billie [200 OK, 421B, 184ms]
+  √  Статус 200
+
+└ Поиск «Blinding» в каталоге
+  GET http://127.0.0.1:5290/api/tracks?query=Blinding [200 OK, 421B, 29ms]
+  √  Статус 200
+
+└ Поиск «Despacito» в каталоге
+  GET http://127.0.0.1:5290/api/tracks?query=Despacito [200 OK, 430B, 11ms]
+  √  Статус 200
+
+└ Поиск «Bohemian» в каталоге
+  GET http://127.0.0.1:5290/api/tracks?query=Bohemian [200 OK, 417B, 8ms]
+  √  Статус 200
+
+└ TC-22.1 user_5 добавляет трек 1
+  POST http://127.0.0.1:5290/api/rooms/1/queue/items [201 Created, 499B, 217ms]
+  √  Статус 201
+  √  Рейтинг +1 (голос автора)
+
+└ TC-22.1 user_5 добавляет трек 2
+  POST http://127.0.0.1:5290/api/rooms/1/queue/items [201 Created, 499B, 87ms]
+  √  Статус 201
+  √  Рейтинг +1 (голос автора)
+
+└ TC-22.1 user_5 добавляет трек 3
+  POST http://127.0.0.1:5290/api/rooms/1/queue/items [201 Created, 508B, 96ms]
+  √  Статус 201
+  √  Рейтинг +1 (голос автора)
+
+└ Версия очереди перед 4-м треком
+  GET http://127.0.0.1:5290/api/rooms/1/queue [200 OK, 2.33kB, 49ms]
+  √  Статус 200
+
+└ TC-22.2 Четвёртый трек
+  POST http://127.0.0.1:5290/api/rooms/1/queue/items [409 Conflict, 434B, 42ms]
+  √  Статус 409
+  √  Ошибка в формате ProblemDetails
+  √  Сообщение о лимите 3 трека
+
+└ TC-22.3 Версия очереди не изменилась
+  GET http://127.0.0.1:5290/api/rooms/1/queue [200 OK, 2.33kB, 28ms]
+  √  Статус 200
+  √  QUEUE_VERSION не вырос
+
+└ Вход user_4
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 746B, 134ms]
+  √  Статус 200
+
+└ TC-23.1 Голос 1 за Numb
+  PUT http://127.0.0.1:5290/api/rooms/1/queue/items/8/vote [200 OK, 240B, 191ms]
+  √  Статус 200
+  √  Рейтинг +3
+
+└ TC-23.2 Голос 1 за Numb
+  PUT http://127.0.0.1:5290/api/rooms/1/queue/items/8/vote [200 OK, 240B, 84ms]
+  √  Статус 200
+  √  Рейтинг +3
+
+└ TC-23.3 Голос -1 за Numb
+  PUT http://127.0.0.1:5290/api/rooms/1/queue/items/8/vote [200 OK, 240B, 47ms]
+  √  Статус 200
+  √  Рейтинг +1
+
+└ TC-23.4 Голос 0 за Numb
+  PUT http://127.0.0.1:5290/api/rooms/1/queue/items/8/vote [200 OK, 240B, 51ms]
+  √  Статус 200
+  √  Рейтинг +2
+
+└ TC-23 Некорректное значение голоса
+  PUT http://127.0.0.1:5290/api/rooms/1/queue/items/8/vote [400 Bad Request, 502B, 20ms]
+  √  Статус 400
+  √  Ошибка в формате ProblemDetails
+
+└ Подготовка TC-24: user_3 входит в Rock & Metal Bar
+  POST http://127.0.0.1:5290/api/rooms/1/members [200 OK, 314B, 66ms]
+  √  Статус 200
+
+└ TC-24.1 Голос −1 при рейтинге −4
+  PUT http://127.0.0.1:5290/api/rooms/1/queue/items/7/vote [200 OK, 246B, 87ms]
+  √  Статус 200
+  √  Рейтинг −5, статус AutoRemoved
+
+└ TC-24.1 Трек исчез из очереди
+  GET http://127.0.0.1:5290/api/rooms/1/queue [200 OK, 2.07kB, 45ms]
+  √  Статус 200
+  √  Never Gonna Give You Up нет в очереди
+
+└ TC-25.1 Contributor закрепляет Numb
+  PUT http://127.0.0.1:5290/api/rooms/1/queue/items/8/pin [403 Forbidden, 443B, 34ms]
+  √  Статус 403
+  √  Ошибка в формате ProblemDetails
+
+└ TC-25.2 Модератор закрепляет Numb
+  PUT http://127.0.0.1:5290/api/rooms/1/queue/items/8/pin [204 No Content, 133B, 52ms]
+  √  Статус 204
+
+└ TC-25.2 Порядок: закреплённые первыми
+  GET http://127.0.0.1:5290/api/rooms/1/queue [200 OK, 2.07kB, 37ms]
+  √  Статус 200
+  √  Enter Sandman, затем Numb, затем Smells Like Teen Spirit
+
+└ TC-25.3 Модератор открепляет Enter Sandman
+  DELETE http://127.0.0.1:5290/api/rooms/1/queue/items/5/pin [204 No Content, 133B, 57ms]
+  √  Статус 204
+
+└ TC-25.3 Порядок после открепления
+  GET http://127.0.0.1:5290/api/rooms/1/queue [200 OK, 2.07kB, 34ms]
+  √  Статус 200
+  √  Numb, Smells Like Teen Spirit (+5), потом Enter Sandman (+1)
+
+□ 05 Playback
+└ Текущий трек и первая позиция очереди
+  GET http://127.0.0.1:5290/api/rooms/1/queue [200 OK, 2.07kB, 24ms]
+  √  Статус 200
+  √  Сейчас играет трек
+
+└ TC-26.1 Голос за пропуск: user_owner
+  POST http://127.0.0.1:5290/api/rooms/1/playback/skip-votes [200 OK, 240B, 90ms]
+  √  Статус 200
+  √  Требуется строго больше половины онлайн
+  √  Порог не достигнут — трек продолжает играть
+
+└ TC-26.1 Голос за пропуск: user_mod
+  POST http://127.0.0.1:5290/api/rooms/1/playback/skip-votes [200 OK, 240B, 41ms]
+  √  Статус 200
+  √  Требуется строго больше половины онлайн
+  √  Порог не достигнут — трек продолжает играть
+
+└ TC-26.1 Повторный голос не учитывается
+  POST http://127.0.0.1:5290/api/rooms/1/playback/skip-votes [200 OK, 240B, 57ms]
+  √  Статус 200
+  √  Голосов по-прежнему 2
+
+└ TC-26.1 Голос за пропуск: user_1
+  POST http://127.0.0.1:5290/api/rooms/1/playback/skip-votes [200 OK, 240B, 49ms]
+  √  Статус 200
+  √  Требуется строго больше половины онлайн
+  √  Порог не достигнут — трек продолжает играть
+
+└ TC-26.1 Голос за пропуск: user_5
+  POST http://127.0.0.1:5290/api/rooms/1/playback/skip-votes [200 OK, 240B, 55ms]
+  √  Статус 200
+  √  Требуется строго больше половины онлайн
+  √  Порог не достигнут — трек продолжает играть
+
+└ TC-26.2 Голос большинства: user_4
+  POST http://127.0.0.1:5290/api/rooms/1/playback/skip-votes [200 OK, 239B, 101ms]
+  √  Статус 200
+  √  Требуется строго больше половины онлайн
+  √  Трек пропущен
+
+└ TC-26.2 Играет первая позиция очереди
+  GET http://127.0.0.1:5290/api/rooms/1/queue [200 OK, 1.82kB, 37ms]
+  √  Статус 200
+  √  Новый текущий трек — бывшая первая позиция
+  √  Пропущенный трек больше не играет и не в очереди
+
+└ Пропуск модератором без голосования (Contributor)
+  POST http://127.0.0.1:5290/api/rooms/1/playback/skip [403 Forbidden, 444B, 47ms]
+  √  Статус 403
+  √  Ошибка в формате ProblemDetails
+
+□ 06 Catalog
+└ TC-34.1 Поиск thunder
+  GET http://127.0.0.1:5290/api/tracks?query=thunder [200 OK, 413B, 9ms]
+  √  Статус 200
+  √  Найден Thunderstruck
+
+└ TC-34.2 Поиск по исполнителю GUNS N
+  GET http://127.0.0.1:5290/api/tracks?query=GUNS%20N [200 OK, 605B, 21ms]
+  √  Статус 200
+  √  Найдены оба трека Guns N' Roses
+
+└ TC-34.3 Пустой запрос
+  GET http://127.0.0.1:5290/api/tracks?query= [400 Bad Request, 466B, 5ms]
+  √  Статус 400
+  √  Ошибка в формате ProblemDetails
+
+└ TC-36.1 YouTube недоступен: thunder из каталога
+  GET http://127.0.0.1:5290/api/tracks?query=thunder [200 OK, 413B, 6ms]
+  √  Статус 200
+  √  externalSearchAvailable = false, локальный результат есть
+
+└ TC-36.2 YouTube недоступен: неизвестная песня
+  GET http://127.0.0.1:5290/api/tracks?query=unknown%20song [200 OK, 244B, 9ms]
+  √  Статус 200
+  √  Пустой список и признак недоступности
+
+□ 07 Audit
+└ TC-30.1 Создание комнаты с X-Correlation-Id
+  POST http://127.0.0.1:5290/api/rooms [201 Created, 279B, 30ms]
+  √  Статус 201
+  √  Заголовок X-Correlation-Id возвращён
+
+└ TC-30.2 GET /api/rooms
+  GET http://127.0.0.1:5290/api/rooms [200 OK, 347B, 14ms]
+  √  Статус 200
+
+└ TC-30.3 Запись Room.Create в журнале
+  GET http://127.0.0.1:5290/api/admin/audit-logs?userId=6&action=Room.Create [200 OK, 806B, 74ms]
+  √  Статус 200
+  √  Есть запись с CorrelationId tc30-check
+  √  Метод POST, путь без query, код 201, IP и длительность заполнены
+
+└ TC-06.2 / TC-32.1 Фильтр Auth.LoginFailed
+  GET http://127.0.0.1:5290/api/admin/audit-logs?action=Auth.LoginFailed [200 OK, 1.48kB, 56ms]
+  √  Статус 200
+  √  Только неудачные входы
+  √  Новые первыми
+  √  TC-06.2 Код 401, есть IP и CorrelationId, пароля нет
+
+└ TC-32.2 Первая страница по 3
+  GET http://127.0.0.1:5290/api/admin/audit-logs?pageSize=3 [200 OK, 1.15kB, 36ms]
+  √  Статус 200
+  √  3 записи и курсор следующей страницы
+
+└ TC-32.2 Следующая страница по курсору
+  GET http://127.0.0.1:5290/api/admin/audit-logs?pageSize=3&cursor=88 [200 OK, 1.23kB, 31ms]
+  √  Статус 200
+  √  Страницы не пересекаются и идут по убыванию id
+
+└ TC-32.3 Журнал от имени user_1
+  GET http://127.0.0.1:5290/api/admin/audit-logs [403 Forbidden, 377B, 4ms]
+  √  Статус 403
+
+□ 08 Security
+└ TC-10.2 Подключение к Hub без токена
+  POST http://127.0.0.1:5290/hubs/room/negotiate?negotiateVersion=1 [401 Unauthorized, 394B, 6ms]
+  √  Статус 401
+
+└ TC-10.1 Подключение к Hub с токеном в query
+  POST http://127.0.0.1:5290/hubs/room/negotiate?negotiateVersion=1&access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJTb3VuZFNoYXJlIiwiaXNzIjoiU291bmRTaGFyZSIsImV4cCI6MTc5MjQ0NjQxNywiaWF0IjoxNzkyNDQ1NTE3LCJuYmYiOjE3OTI0NDU1MTcsInN1YiI6IjQiLCJ1bmlxdWVfbmFtZSI6InVzZXJfMSIsInJvbGUiOiJVc2VyIiwianRpIjoiNjcwMDBhYmNjNTJhNDk2M2JkMGZhMmUwYTg1ZmIxMTYifQ.sMhpGRKfRvYUMXKiii87v9znhLHs7YgDFr_wZkA_jfs [200 OK, 494B, 10ms]
+  √  Статус 200
+  √  Выдан connectionToken
+
+└ TC-10.3 Токен в query для REST не принимается
+  GET http://127.0.0.1:5290/api/rooms?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJTb3VuZFNoYXJlIiwiaXNzIjoiU291bmRTaGFyZSIsImV4cCI6MTc5MjQ0NjQxNywiaWF0IjoxNzkyNDQ1NTE3LCJuYmYiOjE3OTI0NDU1MTcsInN1YiI6IjQiLCJ1bmlxdWVfbmFtZSI6InVzZXJfMSIsInJvbGUiOiJVc2VyIiwianRpIjoiNjcwMDBhYmNjNTJhNDk2M2JkMGZhMmUwYTg1ZmIxMTYifQ.sMhpGRKfRvYUMXKiii87v9znhLHs7YgDFr_wZkA_jfs [401 Unauthorized, 409B, 3ms]
+  √  Статус 401
+
+└ TC-37.1 Очередь чужой приватной комнаты
+  GET http://127.0.0.1:5290/api/rooms/3/queue [404 Not Found, 413B, 8ms]
+  √  Статус 404
+  √  Ошибка в формате ProblemDetails
+
+└ TC-37.2 Голос в чужой приватной комнате
+  PUT http://127.0.0.1:5290/api/rooms/3/queue/items/6/vote [404 Not Found, 413B, 11ms]
+  √  Статус 404
+  √  Ошибка в формате ProblemDetails
+
+└ TC-37.3 Перебор roomId: 0
+  GET http://127.0.0.1:5290/api/rooms/0/queue [404 Not Found, 413B, 11ms]
+  √  Статус 404
+
+└ TC-37.3 Перебор roomId: 999999
+  GET http://127.0.0.1:5290/api/rooms/999999/queue [404 Not Found, 413B, 16ms]
+  √  Статус 404
+
+└ TC-38.2 Некорректный JSON
+  POST http://127.0.0.1:5290/api/rooms [400 Bad Request, 600B, 22ms]
+  √  Статус 400
+  √  Нет деталей реализации
+
+└ Несуществующий эндпоинт API
+  GET http://127.0.0.1:5290/api/does-not-exist [404 Not Found, 362B, 18ms]
+  √  Статус 404
+
+└ Просроченный/подделанный токен
+  GET http://127.0.0.1:5290/api/users/me [401 Unauthorized, 484B, 15ms]
+  √  Статус 401
+
+└ Повышение прав через тело запроса игнорируется
+  POST http://127.0.0.1:5290/api/auth/register [201 Created, 264B, 143ms]
+  √  Статус 201
+
+└ Вход sneaky_user
+  POST http://127.0.0.1:5290/api/auth/login [200 OK, 754B, 127ms]
+  √  Статус 200
+  ┌
+  │ `Using "CryptoJS" is deprecated. Use "require('crypto-
+  │ js')" instead.`
+  └
+  √  Роль осталась User
+
+└ Ограничение частоты входа (rate limit)
+  POST http://127.0.0.1:5290/api/auth/login [401 Unauthorized, 436B, 6ms]
+  √  Статус один из [401, 429]
+
+┌─────────────────────────┬───────────────────┬───────────────────┐
+│                         │          executed │            failed │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│              iterations │                 1 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│                requests │               116 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│            test-scripts │               116 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│      prerequest-scripts │                 1 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│              assertions │               218 │                 0 │
+├─────────────────────────┴───────────────────┴───────────────────┤
+│ total run duration: 20.9s                                       │
+├─────────────────────────────────────────────────────────────────┤
+│ total data received: 41.7kB (approx)                            │
+├─────────────────────────────────────────────────────────────────┤
+│ average response time: 79ms [min: 3ms, max: 979ms, s.d.: 115ms] │
+└─────────────────────────────────────────────────────────────────┘
