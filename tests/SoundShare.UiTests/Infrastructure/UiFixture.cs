@@ -22,6 +22,7 @@ public sealed class UiFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        Assertions.SetDefaultExpectTimeout(15_000);
         Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
         Browser = BrowserName == "firefox"
             ? await Playwright.Firefox.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true })

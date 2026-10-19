@@ -1,0 +1,348 @@
+{
+  "browser": "firefox",
+  "pages": [
+    {
+      "page": "login",
+      "width": 360,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "rooms",
+      "width": 360,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-full-queue",
+      "width": 360,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-empty-long-name",
+      "width": 360,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "not-found",
+      "width": 360,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-users",
+      "width": 360,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-audit",
+      "width": 360,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "login",
+      "width": 768,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "rooms",
+      "width": 768,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-full-queue",
+      "width": 768,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-empty-long-name",
+      "width": 768,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "not-found",
+      "width": 768,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-users",
+      "width": 768,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-audit",
+      "width": 768,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "login",
+      "width": 1280,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "rooms",
+      "width": 1280,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-full-queue",
+      "width": 1280,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-empty-long-name",
+      "width": 1280,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "not-found",
+      "width": 1280,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-users",
+      "width": 1280,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-audit",
+      "width": 1280,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "login",
+      "width": 1920,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "rooms",
+      "width": 1920,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-full-queue",
+      "width": 1920,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-empty-long-name",
+      "width": 1920,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "not-found",
+      "width": 1920,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-users",
+      "width": 1920,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-audit",
+      "width": 1920,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "login",
+      "width": 2560,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "rooms",
+      "width": 2560,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-full-queue",
+      "width": 2560,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-empty-long-name",
+      "width": 2560,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "not-found",
+      "width": 2560,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-users",
+      "width": 2560,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-audit",
+      "width": 2560,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "login",
+      "width": 640,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "rooms",
+      "width": 640,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-full-queue",
+      "width": 640,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "room-empty-long-name",
+      "width": 640,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "not-found",
+      "width": 640,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-users",
+      "width": 640,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    },
+    {
+      "page": "admin-audit",
+      "width": 640,
+      "mobile": false,
+      "overflowPx": 0,
+      "consoleErrors": [],
+      "failedRequests": []
+    }
+  ],
+  "interactive": {
+    "faviconStatus": 200,
+    "logoLeadsHome": true,
+    "focusOutline": "solid",
+    "hoverChangesBorder": true,
+    "pageTitle": "\u041A\u043E\u043C\u043D\u0430\u0442\u044B \u2014 SoundShare"
+  }
+}

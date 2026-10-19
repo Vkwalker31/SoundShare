@@ -22,7 +22,11 @@ public sealed class RoomPage(IPage page)
     {
         await page.GetByTestId("search-query").FillAsync(query);
         await page.GetByTestId("search").ClickAsync();
-        await page.GetByTestId("add-track").First.ClickAsync();
+        await page.GetByTestId("search-item")
+            .Filter(new LocatorFilterOptions { HasText = query })
+            .First
+            .GetByTestId("add-track")
+            .ClickAsync();
     }
 
     public async Task VoteDownAsync(string title) => await Item(title).GetByTestId("vote-down").ClickAsync();

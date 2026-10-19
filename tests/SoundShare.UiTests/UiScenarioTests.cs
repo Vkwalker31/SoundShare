@@ -86,7 +86,7 @@ public class UiScenarioTests(UiFixture fixture) : UiTestBase(fixture)
         }
 
         await Expect(room.QueueItems).ToHaveCountAsync(2);
-        await room.SearchAndAddAsync("Billie");
+        await room.SearchAndAddAsync("Billie Jean");
 
         await Expect(room.ActionError).ToContainTextAsync("3 tracks");
         await Expect(room.QueueItems).ToHaveCountAsync(2);
