@@ -1,0 +1,80 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject AuthSession Session
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<header class="topbar">
+    <a class="brand" href="" data-testid="logo">
+        <img src="favicon.svg" alt="" width="28" height="28" />
+        <span>SoundShare</span>
+    </a>
+    @if (Session.IsAuthenticated)
+    {
+        <nav class="nav">
+            <NavLink href="" Match="NavLinkMatch.All">Комнаты</NavLink>
+            @if (Session.IsAdmin)
+            {
+                <NavLink href="admin/users">Пользователи</NavLink>
+                <NavLink href="admin/audit">Журнал</NavLink>
+            }
+        </nav>
+        <div class="user">
+            <span data-testid="current-user">@Session.Username</span>
+            <button class="btn ghost" data-testid="logout" @onclick="LogoutAsync">Выйти</button>
+        </div>
+    }
+</header>
+
+<main class="page">
+    @if (!_ready)
+    {
+        <p class="muted">Загрузка…</p>
+    }
+    else
+    {
+        @Body
+    }
+</main>
+
+@code {
+    private bool _ready;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Session.Changed += OnSessionChanged;
+        if (!Session.IsAuthenticated)
+        {
+            await Api.TryRestoreSessionAsync();
+        }
+
+        _ready = true;
+        RedirectIfAnonymous();
+    }
+
+    protected override void OnParametersSet() => RedirectIfAnonymous();
+
+    private void RedirectIfAnonymous()
+    {
+        if (!_ready || Session.IsAuthenticated)
+        {
+            return;
+        }
+
+        var relative = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (!relative.StartsWith("login", StringComparison.Ordinal) && !relative.StartsWith("register", StringComparison.Ordinal))
+        {
+            Navigation.NavigateTo("login");
+        }
+    }
+
+    private async Task LogoutAsync()
+    {
+        await Api.LogoutAsync();
+        Navigation.NavigateTo("login");
+    }
+
+    private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}

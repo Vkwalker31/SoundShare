@@ -18,6 +18,8 @@ PROMPT V005__grants
 @@migrations/V005__grants.sql
 PROMPT V006__reference_data
 @@migrations/V006__reference_data.sql
+PROMPT V007__audit_triggers
+@@migrations/V007__audit_triggers.sql
 PROMPT All migrations applied
 
 EXIT

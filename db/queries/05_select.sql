@@ -75,7 +75,7 @@ FROM playing;
 PROMPT ===== 5.3 Список публичных комнат: участники онлайн и текущий трек =====
 SELECT r.id,
        r.name,
-       COUNT(m.user_id) AS online,
+       COUNT(m.user_id) AS online_cnt,
        (SELECT t.title
         FROM playlists p
         JOIN playlist_tracks pt ON pt.playlist_id = p.id AND pt.status = 'PLAYING'
@@ -86,7 +86,7 @@ LEFT JOIN room_members m ON m.room_id = r.id AND m.left_at IS NULL
 WHERE r.is_active = 1
   AND r.is_private = 0
 GROUP BY r.id, r.name
-ORDER BY online DESC, r.name;
+ORDER BY online_cnt DESC, r.name;
 
 PROMPT ===== 5.4 Участники комнаты: роль, статус, срок бана =====
 SELECT u.username,
@@ -178,12 +178,12 @@ FETCH FIRST 20 ROWS ONLY;
 PROMPT ===== 5.10 Прогресс голосования за пропуск: голоса против требуемого большинства =====
 SELECT t.title,
        (SELECT COUNT(*) FROM skip_votes sv WHERE sv.playlist_track_id = pt.id) AS skip_votes,
-       FLOOR(m.online / 2) + 1 AS required,
-       m.online
+       FLOOR(m.online_cnt / 2) + 1 AS required,
+       m.online_cnt
 FROM playlist_tracks pt
 JOIN playlists p ON p.id = pt.playlist_id
 JOIN tracks t ON t.id = pt.track_id
-CROSS JOIN (SELECT COUNT(*) AS online FROM room_members WHERE room_id = :room_id AND left_at IS NULL) m
+CROSS JOIN (SELECT COUNT(*) AS online_cnt FROM room_members WHERE room_id = :room_id AND left_at IS NULL) m
 WHERE p.room_id = :room_id
   AND pt.status = 'PLAYING';
 

@@ -1,0 +1,55 @@
+@page "/register"
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<PageTitle>Регистрация — SoundShare</PageTitle>
+
+<section class="card auth">
+    <h1>Регистрация</h1>
+    <form @onsubmit="SubmitAsync" @onsubmit:preventDefault data-testid="register-form">
+        <label>Имя пользователя
+            <input data-testid="register-username" @bind="_username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" title="Латинские буквы, цифры и _" />
+        </label>
+        <label>Email
+            <input data-testid="register-email" type="email" @bind="_email" required maxlength="254" />
+        </label>
+        <label>Пароль
+            <input data-testid="register-password" type="password" @bind="_password" required minlength="8" maxlength="128" />
+            <small class="muted">Не короче 8 символов, буквы и цифры</small>
+        </label>
+        @if (_error is not null)
+        {
+            <p class="error" role="alert" data-testid="register-error">@_error</p>
+        }
+        <button class="btn primary" type="submit" disabled="@_busy" data-testid="register-submit">Создать аккаунт</button>
+    </form>
+    <p class="muted">Уже есть аккаунт? <a href="login">Войти</a></p>
+</section>
+
+@code {
+    private string _username = string.Empty;
+    private string _email = string.Empty;
+    private string _password = string.Empty;
+    private string? _error;
+    private bool _busy;
+
+    private async Task SubmitAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            await Api.RegisterAsync(_username.Trim(), _email.Trim(), _password);
+            await Api.LoginAsync(_username.Trim(), _password);
+            Navigation.NavigateTo("");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Status == System.Net.HttpStatusCode.Conflict ? "Имя пользователя или email уже заняты." : ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

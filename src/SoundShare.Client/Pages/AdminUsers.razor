@@ -1,0 +1,121 @@
+@page "/admin/users"
+@inject ApiClient Api
+@inject AuthSession Session
+
+<PageTitle>Пользователи — SoundShare</PageTitle>
+
+<h1>Пользователи</h1>
+
+@if (!Session.IsAdmin)
+{
+    <p class="error" data-testid="forbidden">Раздел доступен только администраторам.</p>
+}
+else
+{
+    <form class="inline filters" @onsubmit="() => LoadAsync(1)" @onsubmit:preventDefault>
+        <label>Роль
+            <select @bind="_role" data-testid="filter-role">
+                <option value="">все</option>
+                <option value="Admin">Admin</option>
+                <option value="User">User</option>
+            </select>
+        </label>
+        <label>Статус
+            <select @bind="_status" data-testid="filter-status">
+                <option value="">все</option>
+                <option value="true">активные</option>
+                <option value="false">заблокированные</option>
+            </select>
+        </label>
+        <button class="btn" type="submit" data-testid="apply-filters">Показать</button>
+    </form>
+
+    @if (_error is not null)
+    {
+        <p class="error" role="alert" data-testid="admin-error">@_error</p>
+    }
+
+    @if (_page is not null)
+    {
+        <div class="table-wrap">
+            <table data-testid="users-table">
+                <thead>
+                    <tr><th>Id</th><th>Имя</th><th>Email</th><th>Роль</th><th>Статус</th><th>Действия</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in _page.Items)
+                    {
+                        <tr data-testid="user-row" data-username="@user.Username">
+                            <td>@user.Id</td>
+                            <td>@user.Username</td>
+                            <td class="ellipsis" title="@user.Email">@user.Email</td>
+                            <td>@user.Role</td>
+                            <td>@(user.IsActive ? "активен" : "заблокирован")</td>
+                            <td class="actions">
+                                <button class="btn" data-testid="toggle-role" @onclick="() => ToggleRoleAsync(user)">@(user.Role == "Admin" ? "Сделать User" : "Сделать Admin")</button>
+                                <button class="btn @(user.IsActive ? "danger" : "")" data-testid="toggle-block" @onclick="() => ToggleBlockAsync(user)">@(user.IsActive ? "Заблокировать" : "Разблокировать")</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="pager">
+            <button class="btn" disabled="@(_page.Page <= 1)" @onclick="() => LoadAsync(_page.Page - 1)">Назад</button>
+            <span>Страница @_page.Page из @Math.Max(1, (int)Math.Ceiling(_page.Total / (double)_page.PageSize)) · всего @_page.Total</span>
+            <button class="btn" disabled="@(_page.Page * _page.PageSize >= _page.Total)" @onclick="() => LoadAsync(_page.Page + 1)">Вперёд</button>
+        </div>
+    }
+}
+
+@code {
+    private PagedResult<UserDto>? _page;
+    private string _role = string.Empty;
+    private string _status = string.Empty;
+    private string? _error;
+
+    protected override Task OnInitializedAsync() => Session.IsAdmin ? LoadAsync(1) : Task.CompletedTask;
+
+    private async Task LoadAsync(int page)
+    {
+        _error = null;
+        var url = $"api/admin/users?page={page}&pageSize=20";
+        if (_role.Length > 0)
+        {
+            url += $"&role={_role}";
+        }
+
+        if (_status.Length > 0)
+        {
+            url += $"&isActive={_status}";
+        }
+
+        try
+        {
+            _page = await Api.GetAsync<PagedResult<UserDto>>(url);
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private Task ToggleRoleAsync(UserDto user) =>
+        RunAsync(() => Api.SendAsync(HttpMethod.Patch, $"api/admin/users/{user.Id}/role", new { role = user.Role == "Admin" ? "User" : "Admin" }));
+
+    private Task ToggleBlockAsync(UserDto user) =>
+        RunAsync(() => Api.SendAsync(user.IsActive ? HttpMethod.Put : HttpMethod.Delete, $"api/admin/users/{user.Id}/block"));
+
+    private async Task RunAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+            await LoadAsync(_page?.Page ?? 1);
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+}

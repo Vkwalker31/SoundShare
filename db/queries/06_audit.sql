@@ -156,6 +156,6 @@ ORDER BY table_name, privilege;
 PROMPT ===== 6.13 Записи старше 180 дней, которые подлежат архивированию =====
 SELECT COUNT(*) AS to_archive, MIN(created_at) AS oldest
 FROM audit_logs
-WHERE created_at < SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '180' DAY;
+WHERE created_at < SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '180' DAY(3);
 
 EXIT

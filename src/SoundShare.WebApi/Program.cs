@@ -98,6 +98,8 @@ else
     app.UseHttpsRedirection();
 }
 
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -107,6 +109,8 @@ app.UseRateLimiter();
 app.MapControllers();
 app.MapHub<RoomHub>("/hubs/room");
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+app.Map("/api/{**path}", () => Results.NotFound());
+app.MapFallbackToFile("index.html");
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
 
 await app.RunAsync();

@@ -66,7 +66,7 @@ public class YouTubeTrackSourceTests(SoundShareFixture fixture)
     [Fact]
     public async Task Search_MissingApiKey_ThrowsWithoutCallingYouTube()
     {
-        using var http = new HttpClient { BaseAddress = new Uri($"{fixture.YouTube.Url}/youtube/v3/") };
+        using var http = new HttpClient(new HttpClientHandler { UseProxy = false }) { BaseAddress = new Uri($"{fixture.YouTube.Url}/youtube/v3/") };
         var source = new YouTubeTrackSource(http, Options.Create(new YouTubeOptions { ApiKey = string.Empty }));
 
         await Should.ThrowAsync<HttpRequestException>(() => source.SearchAsync("anything", 20, default));
@@ -74,7 +74,7 @@ public class YouTubeTrackSourceTests(SoundShareFixture fixture)
 
     private YouTubeTrackSource CreateSource(TimeSpan? timeout = null)
     {
-        var http = new HttpClient { BaseAddress = new Uri($"{fixture.YouTube.Url}/youtube/v3/"), Timeout = timeout ?? TimeSpan.FromSeconds(5) };
+        var http = new HttpClient(new HttpClientHandler { UseProxy = false }) { BaseAddress = new Uri($"{fixture.YouTube.Url}/youtube/v3/"), Timeout = timeout ?? TimeSpan.FromSeconds(5) };
         return new YouTubeTrackSource(http, Options.Create(new YouTubeOptions { ApiKey = "test-key" }));
     }
 }

@@ -1,0 +1,15 @@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Не найдено — SoundShare</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <section class="card empty" data-testid="not-found">
+                <h1>Страница не найдена</h1>
+                <p>Такой страницы нет. <a href="">Вернуться к комнатам</a></p>
+            </section>
+        </LayoutView>
+    </NotFound>
+</Router>

@@ -13,7 +13,7 @@ BEGIN
 
     FOR o IN (SELECT object_name, object_type
               FROM user_objects
-              WHERE object_type IN ('VIEW', 'PROCEDURE', 'FUNCTION', 'PACKAGE')) LOOP
+              WHERE object_type IN ('VIEW', 'PROCEDURE', 'FUNCTION', 'PACKAGE', 'TRIGGER')) LOOP
         EXECUTE IMMEDIATE 'DROP ' || o.object_type || ' ' || DBMS_ASSERT.ENQUOTE_NAME(o.object_name, FALSE);
     END LOOP;
 

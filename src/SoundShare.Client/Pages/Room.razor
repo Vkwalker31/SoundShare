@@ -1,0 +1,344 @@
+@page "/rooms/{RoomId:long}"
+@implements IAsyncDisposable
+@using Microsoft.AspNetCore.SignalR.Client
+@inject ApiClient Api
+@inject AuthSession Session
+@inject NavigationManager Navigation
+
+<PageTitle>@(_room?.Name ?? "Комната") — SoundShare</PageTitle>
+
+@if (_fatal is not null)
+{
+    <section class="card empty" data-testid="room-error">
+        <h1>Комната недоступна</h1>
+        <p>@_fatal</p>
+        <a class="btn" href="">К списку комнат</a>
+    </section>
+}
+else if (_room is null || _queue is null)
+{
+    <p class="muted">Загрузка…</p>
+}
+else
+{
+    <div class="room-head">
+        <h1 data-testid="room-title">@_room.Name</h1>
+        @if (_room.InviteCode is not null)
+        {
+            <span class="badge" data-testid="room-code">код @_room.InviteCode</span>
+        }
+        <span class="badge">@_room.MembersCount онлайн</span>
+        <span class="badge" data-testid="my-role">@RoleName(_room.MyRole)</span>
+        <span class="spacer"></span>
+        <button class="btn ghost" data-testid="leave-room" @onclick="LeaveAsync">Выйти из комнаты</button>
+    </div>
+
+    @if (_error is not null)
+    {
+        <p class="error" role="alert" data-testid="room-action-error">@_error</p>
+    }
+
+    <div class="grid room">
+        <section class="card player" data-testid="now-playing">
+            @if (_queue.Playing is { } playing)
+            {
+                <div class="video">
+                    @if (_videoEnabled)
+                    {
+                        <iframe src="@VideoUrl(playing)" title="@playing.Track.Title" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    }
+                    else
+                    {
+                        <img src="@playing.Track.ThumbnailUrl" alt="Обложка: @playing.Track.Title" />
+                    }
+                </div>
+                <h2 class="title" data-testid="playing-title">@playing.Track.Title</h2>
+                <p class="muted">@string.Join(", ", playing.Track.Artists)</p>
+                <div class="progress" aria-label="Прогресс трека">
+                    <div class="bar" style="width:@ProgressPercent(playing)%"></div>
+                </div>
+                <p class="muted time">@Format(Elapsed(playing)) / @Format(playing.Track.DurationSec)</p>
+                <div class="actions">
+                    <button class="btn" data-testid="skip-vote" @onclick="VoteSkipAsync">Пропустить @(_skip is null ? "" : $"{_skip.Votes}/{_skip.Required}")</button>
+                    @if (IsModerator)
+                    {
+                        <button class="btn danger" data-testid="skip-now" @onclick="SkipAsync">Пропустить сейчас</button>
+                    }
+                    <label class="check"><input type="checkbox" @bind="_videoEnabled" /> Видео</label>
+                </div>
+            }
+            else
+            {
+                <p class="muted empty" data-testid="nothing-playing">Сейчас ничего не играет. Добавьте трек в очередь.</p>
+            }
+        </section>
+
+        <section class="card">
+            <h2>Очередь</h2>
+            @if (_queue.Items.Count == 0)
+            {
+                <p class="muted empty" data-testid="queue-empty">Очередь пуста.</p>
+            }
+            else
+            {
+                <ol class="list queue" data-testid="queue">
+                    @foreach (var item in _queue.Items)
+                    {
+                        <li class="row" data-testid="queue-item" data-item-id="@item.Id">
+                            <img class="thumb" src="@item.Track.ThumbnailUrl" alt="" loading="lazy" />
+                            <span class="title" title="@item.Track.Title">
+                                @if (item.Pinned)
+                                {
+                                    <span class="badge pin" data-testid="pinned">закреплён</span>
+                                }
+                                @item.Track.Title
+                                <small class="muted">@string.Join(", ", item.Track.Artists) · @item.AddedBy</small>
+                            </span>
+                            <span class="score" data-testid="score">@item.Score</span>
+                            <button class="btn icon" title="За" aria-label="Голосовать за" data-testid="vote-up" @onclick="() => VoteAsync(item, 1)">+</button>
+                            <button class="btn icon" title="Против" aria-label="Голосовать против" data-testid="vote-down" @onclick="() => VoteAsync(item, -1)">−</button>
+                            @if (IsModerator)
+                            {
+                                <button class="btn icon" title="@(item.Pinned ? "Открепить" : "Закрепить")" data-testid="pin" @onclick="() => PinAsync(item)">@(item.Pinned ? "↓" : "↑")</button>
+                            }
+                            @if (IsModerator || item.AddedBy == Session.Username)
+                            {
+                                <button class="btn icon" title="Удалить" aria-label="Удалить" data-testid="remove" @onclick="() => RemoveAsync(item)">×</button>
+                            }
+                        </li>
+                    }
+                </ol>
+            }
+        </section>
+
+        <section class="card">
+            <h2>Добавить трек</h2>
+            <form class="inline" @onsubmit="SearchAsync" @onsubmit:preventDefault data-testid="search-form">
+                <input data-testid="search-query" @bind="_query" placeholder="Название или исполнитель" required maxlength="100" />
+                <button class="btn" type="submit" data-testid="search">Найти</button>
+            </form>
+            @if (_search is not null)
+            {
+                @if (!_search.ExternalSearchAvailable)
+                {
+                    <p class="muted" data-testid="external-unavailable">Поиск на YouTube сейчас недоступен — показаны треки из каталога.</p>
+                }
+                @if (_search.Items.Count == 0)
+                {
+                    <p class="muted empty" data-testid="search-empty">Ничего не найдено.</p>
+                }
+                <ul class="list" data-testid="search-results">
+                    @foreach (var track in _search.Items)
+                    {
+                        <li class="row" data-testid="search-item">
+                            <img class="thumb" src="@track.ThumbnailUrl" alt="" loading="lazy" />
+                            <span class="title" title="@track.Title">@track.Title <small class="muted">@string.Join(", ", track.Artists)</small></span>
+                            <span class="muted">@Format(track.DurationSec)</span>
+                            <button class="btn" data-testid="add-track" @onclick="() => AddAsync(track)">Добавить</button>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public long RoomId { get; set; }
+
+    private RoomStateDto? _room;
+    private QueueDto? _queue;
+    private SkipProgressDto? _skip;
+    private TrackSearchResultDto? _search;
+    private string _query = string.Empty;
+    private string? _error;
+    private string? _fatal;
+    private bool _videoEnabled;
+    private TimeSpan _clockOffset;
+    private HubConnection? _hub;
+    private PeriodicTimer? _timer;
+
+    private bool IsModerator => _room?.MyRole is "Owner" or "Moderator";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Session.IsAuthenticated)
+        {
+            return;
+        }
+
+        try
+        {
+            _room = await Api.GetAsync<RoomStateDto>($"api/rooms/{RoomId}");
+            if (_room.MyRole == "None")
+            {
+                _room = await Api.PostAsync<RoomStateDto>($"api/rooms/{RoomId}/members");
+            }
+
+            await LoadQueueAsync();
+            await ConnectAsync();
+            _ = TickAsync();
+        }
+        catch (ApiException ex)
+        {
+            _fatal = ex.Status == System.Net.HttpStatusCode.NotFound ? "Комната не найдена или закрыта." : ex.Message;
+        }
+    }
+
+    private async Task LoadQueueAsync()
+    {
+        _queue = await Api.GetAsync<QueueDto>($"api/rooms/{RoomId}/queue");
+        if (_queue.Playing is { } playing)
+        {
+            _clockOffset = playing.ServerTimeUtc - DateTime.UtcNow;
+        }
+    }
+
+    private async Task ConnectAsync()
+    {
+        _hub = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("hubs/room"), options => options.AccessTokenProvider = () => Task.FromResult(Session.AccessToken))
+            .WithAutomaticReconnect()
+            .Build();
+        _hub.On<object>("QueueUpdated", _ => RefreshAsync());
+        _hub.On<object>("PlaybackChanged", _ => RefreshAsync(resetSkip: true));
+        _hub.On<object>("RoomClosed", _ => InvokeAsync(() =>
+        {
+            _fatal = "Комната закрыта.";
+            StateHasChanged();
+        }));
+        _hub.Reconnected += _ => _hub.InvokeAsync("JoinRoom", RoomId);
+        try
+        {
+            await _hub.StartAsync();
+            await _hub.InvokeAsync("JoinRoom", RoomId);
+        }
+        catch (HttpRequestException)
+        {
+            _error = "Нет соединения для обновлений в реальном времени — очередь обновится при действиях.";
+        }
+    }
+
+    private Task RefreshAsync(bool resetSkip = false) => InvokeAsync(async () =>
+    {
+        if (resetSkip)
+        {
+            _skip = null;
+        }
+
+        try
+        {
+            await LoadQueueAsync();
+            _room = await Api.GetAsync<RoomStateDto>($"api/rooms/{RoomId}");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+
+        StateHasChanged();
+    });
+
+    private async Task TickAsync()
+    {
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        while (await _timer.WaitForNextTickAsync())
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private Task RunAsync(Func<Task> action) => InvokeAsync(async () =>
+    {
+        _error = null;
+        try
+        {
+            await action();
+            await LoadQueueAsync();
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+    });
+
+    private Task VoteAsync(QueueItemDto item, int value) =>
+        RunAsync(() => Api.PutAsync<VoteResultDto>($"api/rooms/{RoomId}/queue/items/{item.Id}/vote", new { value }));
+
+    private Task PinAsync(QueueItemDto item) =>
+        RunAsync(() => Api.SendAsync(item.Pinned ? HttpMethod.Delete : HttpMethod.Put, $"api/rooms/{RoomId}/queue/items/{item.Id}/pin"));
+
+    private Task RemoveAsync(QueueItemDto item) =>
+        RunAsync(() => Api.SendAsync(HttpMethod.Delete, $"api/rooms/{RoomId}/queue/items/{item.Id}"));
+
+    private Task AddAsync(TrackDto track) =>
+        RunAsync(() => Api.PostAsync<QueueItemDto>($"api/rooms/{RoomId}/queue/items", new { trackId = track.Id }));
+
+    private Task SkipAsync() => RunAsync(() => Api.SendAsync(HttpMethod.Post, $"api/rooms/{RoomId}/playback/skip"));
+
+    private Task VoteSkipAsync() => RunAsync(async () =>
+    {
+        _skip = await Api.PostAsync<SkipProgressDto>($"api/rooms/{RoomId}/playback/skip-votes");
+        if (_skip.Skipped)
+        {
+            _skip = null;
+        }
+    });
+
+    private async Task SearchAsync()
+    {
+        _error = null;
+        try
+        {
+            _search = await Api.GetAsync<TrackSearchResultDto>($"api/tracks?query={Uri.EscapeDataString(_query.Trim())}");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task LeaveAsync()
+    {
+        try
+        {
+            await Api.SendAsync(HttpMethod.Delete, $"api/rooms/{RoomId}/members/me");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+            return;
+        }
+
+        Navigation.NavigateTo("");
+    }
+
+    private int Elapsed(PlayingDto playing) =>
+        Math.Clamp((int)(DateTime.UtcNow + _clockOffset - playing.StartedAtUtc).TotalSeconds, 0, playing.Track.DurationSec);
+
+    private string ProgressPercent(PlayingDto playing) =>
+        (Elapsed(playing) * 100.0 / Math.Max(playing.Track.DurationSec, 1)).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+
+    private string VideoUrl(PlayingDto playing) =>
+        $"https://www.youtube-nocookie.com/embed/{playing.Track.ExternalSourceId}?autoplay=1&start={Elapsed(playing)}";
+
+    private static string Format(int seconds) => $"{seconds / 60}:{seconds % 60:00}";
+
+    private static string RoleName(string role) => role switch
+    {
+        "Owner" => "владелец",
+        "Moderator" => "модератор",
+        "Contributor" => "участник",
+        _ => "гость",
+    };
+
+    public async ValueTask DisposeAsync()
+    {
+        _timer?.Dispose();
+        if (_hub is not null)
+        {
+            await _hub.DisposeAsync();
+        }
+    }
+}

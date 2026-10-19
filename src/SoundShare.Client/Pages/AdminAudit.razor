@@ -1,0 +1,115 @@
+@page "/admin/audit"
+@inject ApiClient Api
+@inject AuthSession Session
+
+<PageTitle>Журнал — SoundShare</PageTitle>
+
+<h1>Журнал действий</h1>
+
+@if (!Session.IsAdmin)
+{
+    <p class="error" data-testid="forbidden">Раздел доступен только администраторам.</p>
+}
+else
+{
+    <form class="inline filters" @onsubmit="ReloadAsync" @onsubmit:preventDefault>
+        <label>Id пользователя
+            <input type="number" min="1" @bind="_userId" data-testid="audit-user" />
+        </label>
+        <label>Действие
+            <input @bind="_action" placeholder="Queue.PinFailed" data-testid="audit-action" maxlength="64" />
+        </label>
+        <button class="btn" type="submit" data-testid="audit-apply">Показать</button>
+    </form>
+
+    @if (_error is not null)
+    {
+        <p class="error" role="alert">@_error</p>
+    }
+
+    @if (_items.Count == 0 && _loaded)
+    {
+        <p class="muted empty" data-testid="audit-empty">Записей нет.</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table data-testid="audit-table">
+                <thead>
+                    <tr><th>Время (UTC)</th><th>Источник</th><th>Пользователь</th><th>Действие</th><th>Запрос</th><th>Код</th><th>мс</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in _items)
+                    {
+                        <tr data-testid="audit-row" class="@(log.StatusCode >= 400 ? "failed" : "")">
+                            <td>@log.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)</td>
+                            <td>@log.Source</td>
+                            <td>@(log.UserId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "—")</td>
+                            <td>@log.Action</td>
+                            <td class="ellipsis" title="@log.Path">@log.HttpMethod @log.Path</td>
+                            <td>@log.StatusCode</td>
+                            <td>@log.DurationMs</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (_cursor is not null)
+        {
+            <button class="btn" data-testid="audit-more" @onclick="LoadMoreAsync">Ещё</button>
+        }
+    }
+}
+
+@code {
+    private readonly List<AuditLogDto> _items = [];
+    private long? _cursor;
+    private long? _userId;
+    private string _action = string.Empty;
+    private string? _error;
+    private bool _loaded;
+
+    protected override Task OnInitializedAsync() => Session.IsAdmin ? ReloadAsync() : Task.CompletedTask;
+
+    private async Task ReloadAsync()
+    {
+        _items.Clear();
+        _cursor = null;
+        await LoadAsync(null);
+    }
+
+    private Task LoadMoreAsync() => LoadAsync(_cursor);
+
+    private async Task LoadAsync(long? cursor)
+    {
+        _error = null;
+        var url = "api/admin/audit-logs?pageSize=50";
+        if (_userId is { } userId)
+        {
+            url += $"&userId={userId}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(_action))
+        {
+            url += $"&action={Uri.EscapeDataString(_action.Trim())}";
+        }
+
+        if (cursor is { } c)
+        {
+            url += $"&cursor={c}";
+        }
+
+        try
+        {
+            var page = await Api.GetAsync<AuditPageDto>(url);
+            _items.AddRange(page.Items);
+            _cursor = page.NextCursor;
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+
+        _loaded = true;
+    }
+}

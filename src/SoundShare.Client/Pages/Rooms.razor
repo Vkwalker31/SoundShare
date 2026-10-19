@@ -1,0 +1,113 @@
+@page "/"
+@inject ApiClient Api
+@inject AuthSession Session
+@inject NavigationManager Navigation
+
+<PageTitle>Комнаты — SoundShare</PageTitle>
+
+<h1>Комнаты</h1>
+
+<div class="grid two">
+    <section class="card">
+        <h2>Создать комнату</h2>
+        <form @onsubmit="CreateAsync" @onsubmit:preventDefault data-testid="create-room-form">
+            <label>Название
+                <input data-testid="room-name" @bind="_name" required maxlength="100" />
+            </label>
+            <label class="check">
+                <input type="checkbox" data-testid="room-private" @bind="_isPrivate" /> Приватная (вход по коду)
+            </label>
+            <button class="btn primary" type="submit" data-testid="create-room">Создать</button>
+        </form>
+    </section>
+    <section class="card">
+        <h2>Войти по коду</h2>
+        <form @onsubmit="JoinByCodeAsync" @onsubmit:preventDefault data-testid="join-code-form">
+            <label>Код приглашения
+                <input data-testid="invite-code" @bind="_code" required maxlength="16" placeholder="ABC234" />
+            </label>
+            <button class="btn" type="submit" data-testid="join-by-code">Войти</button>
+        </form>
+    </section>
+</div>
+
+@if (_error is not null)
+{
+    <p class="error" role="alert" data-testid="rooms-error">@_error</p>
+}
+
+<section class="card">
+    <h2>Публичные комнаты</h2>
+    @if (_rooms is null)
+    {
+        <p class="muted">Загрузка…</p>
+    }
+    else if (_rooms.Count == 0)
+    {
+        <p class="muted empty" data-testid="rooms-empty">Публичных комнат пока нет — создайте первую.</p>
+    }
+    else
+    {
+        <ul class="list" data-testid="rooms-list">
+            @foreach (var room in _rooms)
+            {
+                <li class="row" data-testid="room-row">
+                    <span class="title" title="@room.Name">@room.Name</span>
+                    <span class="badge">@room.MembersCount онлайн</span>
+                    <a class="btn" href="@($"rooms/{room.Id}")" data-testid="open-room">Войти</a>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    private List<RoomSummaryDto>? _rooms;
+    private string _name = string.Empty;
+    private bool _isPrivate;
+    private string _code = string.Empty;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.IsAuthenticated)
+        {
+            return;
+        }
+
+        try
+        {
+            _rooms = await Api.GetAsync<List<RoomSummaryDto>>("api/rooms");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        try
+        {
+            var room = await Api.PostAsync<RoomCreatedDto>("api/rooms", new { name = _name.Trim(), isPrivate = _isPrivate });
+            Navigation.NavigateTo($"rooms/{room.Id}");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task JoinByCodeAsync()
+    {
+        try
+        {
+            var room = await Api.PostAsync<RoomStateDto>("api/rooms/join", new { inviteCode = _code.Trim() });
+            Navigation.NavigateTo($"rooms/{room.Id}");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Status == System.Net.HttpStatusCode.NotFound ? "Комната с таким кодом не найдена." : ex.Message;
+        }
+    }
+}

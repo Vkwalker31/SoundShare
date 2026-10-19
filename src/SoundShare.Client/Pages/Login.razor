@@ -1,0 +1,49 @@
+@page "/login"
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<PageTitle>Вход — SoundShare</PageTitle>
+
+<section class="card auth">
+    <h1>Вход</h1>
+    <form @onsubmit="SubmitAsync" @onsubmit:preventDefault data-testid="login-form">
+        <label>Имя пользователя
+            <input data-testid="login-username" @bind="_username" autocomplete="username" required maxlength="32" />
+        </label>
+        <label>Пароль
+            <input data-testid="login-password" type="password" @bind="_password" autocomplete="current-password" required maxlength="128" />
+        </label>
+        @if (_error is not null)
+        {
+            <p class="error" role="alert" data-testid="login-error">@_error</p>
+        }
+        <button class="btn primary" type="submit" disabled="@_busy" data-testid="login-submit">Войти</button>
+    </form>
+    <p class="muted">Нет аккаунта? <a href="register" data-testid="to-register">Зарегистрироваться</a></p>
+</section>
+
+@code {
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+    private string? _error;
+    private bool _busy;
+
+    private async Task SubmitAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            await Api.LoginAsync(_username.Trim(), _password);
+            Navigation.NavigateTo("");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Status == System.Net.HttpStatusCode.Unauthorized ? "Неверное имя пользователя или пароль." : ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}
