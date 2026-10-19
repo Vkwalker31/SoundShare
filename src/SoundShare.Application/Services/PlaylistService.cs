@@ -15,6 +15,7 @@ public sealed class PlaylistService(
 {
     public async Task<PlaylistDto> CreateAsync(long userId, CreatePlaylistRequest request, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         await validator.ValidateAndThrowAsync(request, cancellationToken);
         IReadOnlyList<long> trackIds = [];
         if (request.FromRoomId is { } roomId)

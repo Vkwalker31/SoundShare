@@ -17,6 +17,7 @@ public sealed class AuthService(
 {
     public async Task<UserDto> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         await registerValidator.ValidateAndThrowAsync(request, cancellationToken);
         await EnsureUniqueAsync(users, request.Username, request.Email, cancellationToken);
 
@@ -28,6 +29,7 @@ public sealed class AuthService(
 
     public async Task<AuthResult> LoginAsync(LoginRequest request, string? ipAddress, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         await loginValidator.ValidateAndThrowAsync(request, cancellationToken);
 
         var user = await users.GetByUsernameAsync(request.Username, cancellationToken);

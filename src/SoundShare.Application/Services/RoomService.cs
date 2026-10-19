@@ -73,6 +73,7 @@ public sealed class RoomService(
 
     public async Task<RoomStateDto> JoinByCodeAsync(long userId, JoinByCodeRequest request, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         await joinValidator.ValidateAndThrowAsync(request, cancellationToken);
         if (!InviteCode.TryParse(request.InviteCode, out var code))
         {
@@ -110,6 +111,7 @@ public sealed class RoomService(
 
     public async Task BanAsync(long roomId, long actorId, BanRequest request, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         await banValidator.ValidateAndThrowAsync(request, cancellationToken);
         var actor = await RequireActiveMemberAsync(roomId, actorId, cancellationToken);
         var target = await rooms.GetMemberAsync(roomId, request.UserId, cancellationToken);

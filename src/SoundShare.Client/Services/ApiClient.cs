@@ -6,9 +6,29 @@ using Microsoft.JSInterop;
 
 namespace SoundShare.Client.Services;
 
-public sealed class ApiException(HttpStatusCode status, string message) : Exception(message)
+public sealed class ApiException : Exception
 {
-    public HttpStatusCode Status { get; } = status;
+    public ApiException()
+    {
+    }
+
+    public ApiException(string message)
+        : base(message)
+    {
+    }
+
+    public ApiException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public ApiException(HttpStatusCode status, string message)
+        : base(message)
+    {
+        Status = status;
+    }
+
+    public HttpStatusCode Status { get; }
 }
 
 public sealed class ApiClient(HttpClient http, AuthSession session, IJSRuntime js)

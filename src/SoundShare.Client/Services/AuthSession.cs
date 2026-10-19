@@ -19,16 +19,17 @@ public sealed class AuthSession
 
     public bool IsAdmin => Role == "Admin";
 
-    public event Action? Changed;
+    public event EventHandler? Changed;
 
     public void SignIn(string accessToken)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accessToken);
         var claims = ReadClaims(accessToken);
         AccessToken = accessToken;
         Username = claims.TryGetValue("unique_name", out var name) ? name.GetString() : null;
         Role = claims.TryGetValue("role", out var role) ? role.GetString() : null;
         UserId = claims.TryGetValue("sub", out var sub) ? long.Parse(sub.GetString()!, CultureInfo.InvariantCulture) : 0;
-        Changed?.Invoke();
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void SignOut()
@@ -37,7 +38,7 @@ public sealed class AuthSession
         Username = null;
         Role = null;
         UserId = 0;
-        Changed?.Invoke();
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     private static Dictionary<string, JsonElement> ReadClaims(string jwt)

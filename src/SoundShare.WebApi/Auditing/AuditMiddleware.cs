@@ -26,14 +26,14 @@ internal sealed class AuditMiddleware(RequestDelegate next, AuditBuffer buffer, 
     private static bool ShouldAudit(HttpContext context)
     {
         var request = context.Request;
-        if (!request.Path.StartsWithSegments("/api"))
+        if (!request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
         var status = context.Response.StatusCode;
         return !HttpMethods.IsGet(request.Method) && !HttpMethods.IsHead(request.Method) && !HttpMethods.IsOptions(request.Method)
-            || request.Path.StartsWithSegments("/api/admin")
+            || request.Path.StartsWithSegments("/api/admin", StringComparison.OrdinalIgnoreCase)
             || status is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden;
     }
 

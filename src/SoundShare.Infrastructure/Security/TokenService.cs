@@ -48,5 +48,9 @@ public sealed class TokenService(IOptions<JwtOptions> options, TimeProvider time
 
     public byte[] HashRefreshToken(string value) => SHA256.HashData(Encoding.UTF8.GetBytes(value));
 
-    public static SymmetricSecurityKey SigningKey(JwtOptions options) => new(Encoding.UTF8.GetBytes(options.SigningKey));
+    public static SymmetricSecurityKey SigningKey(JwtOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return new(Encoding.UTF8.GetBytes(options.SigningKey));
+    }
 }

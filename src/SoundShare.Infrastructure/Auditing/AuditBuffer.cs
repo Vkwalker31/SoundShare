@@ -19,6 +19,7 @@ public sealed partial class AuditBuffer(ILogger<AuditBuffer> logger)
 
     public void Enqueue(AuditLog entry)
     {
+        ArgumentNullException.ThrowIfNull(entry);
         if (!_channel.Writer.TryWrite(entry))
         {
             Interlocked.Increment(ref _dropped);

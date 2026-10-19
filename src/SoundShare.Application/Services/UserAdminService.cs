@@ -30,6 +30,7 @@ public sealed class UserAdminService(
 
     public async Task<UserDto> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         await createValidator.ValidateAndThrowAsync(request, cancellationToken);
         await AuthService.EnsureUniqueAsync(users, request.Username, request.Email, cancellationToken);
 
@@ -41,6 +42,7 @@ public sealed class UserAdminService(
 
     public async Task ChangeRoleAsync(long userId, ChangeRoleRequest request, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         await roleValidator.ValidateAndThrowAsync(request, cancellationToken);
         var user = await users.GetByIdAsync(userId, cancellationToken) ?? throw new NotFoundException("User not found.");
         var role = Roles.ParseSystemRole(request.Role);
@@ -82,6 +84,7 @@ public sealed class UserAdminService(
 
     public async Task DeleteOwnAccountAsync(long userId, DeleteAccountRequest request, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         await deleteValidator.ValidateAndThrowAsync(request, cancellationToken);
         var user = await users.GetByIdAsync(userId, cancellationToken) ?? throw new NotFoundException("User not found.");
         if (!passwordHasher.Verify(user.PasswordHash, request.Password))
