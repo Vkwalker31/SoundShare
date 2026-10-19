@@ -209,6 +209,20 @@ else
             .Build();
         _hub.On<object>("QueueUpdated", _ => RefreshAsync());
         _hub.On<object>("PlaybackChanged", _ => RefreshAsync(resetSkip: true));
+        _hub.On<SkipProgressDto>("SkipProgress", progress => InvokeAsync(() =>
+        {
+            _skip = progress;
+            StateHasChanged();
+        }));
+        _hub.On<object>("RemovedFromRoom", _ => InvokeAsync(async () =>
+        {
+            _fatal = "Модератор исключил вас из комнаты.";
+            StateHasChanged();
+            if (_hub is not null)
+            {
+                await _hub.StopAsync();
+            }
+        }));
         _hub.On<object>("RoomClosed", _ => InvokeAsync(() =>
         {
             _fatal = "Комната закрыта.";

@@ -7,4 +7,8 @@ public interface IRoomNotifier
     Task PlaybackChangedAsync(long roomId, CancellationToken cancellationToken);
 
     Task RoomClosedAsync(long roomId, CancellationToken cancellationToken);
+
+    Task SkipProgressAsync(long roomId, int votes, int required, CancellationToken cancellationToken);
+
+    Task MemberRemovedAsync(long roomId, long userId, string reason, CancellationToken cancellationToken);
 }

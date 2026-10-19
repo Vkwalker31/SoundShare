@@ -313,6 +313,7 @@ public class QueueServiceTests
         progress.ShouldBe(new SkipProgressDto(2, 3, false));
         playing.Status.ShouldBe(QueueItemStatus.Playing);
         await _notifier.DidNotReceive().PlaybackChangedAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+        await _notifier.Received(1).SkipProgressAsync(RoomId, 2, 3, Arg.Any<CancellationToken>());
     }
 
     [Fact]

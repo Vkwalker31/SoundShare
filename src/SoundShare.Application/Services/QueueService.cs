@@ -190,6 +190,11 @@ public sealed class QueueService(
             },
             cancellationToken);
 
+        if (!progress.Skipped)
+        {
+            await notifier.SkipProgressAsync(roomId, progress.Votes, progress.Required, cancellationToken);
+        }
+
         await NotifyPlaybackAsync(roomId, progress.Skipped, cancellationToken);
         return progress;
     }

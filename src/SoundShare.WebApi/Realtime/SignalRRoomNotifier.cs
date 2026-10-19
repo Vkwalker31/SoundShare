@@ -13,4 +13,10 @@ internal sealed class SignalRRoomNotifier(IHubContext<RoomHub> hub) : IRoomNotif
 
     public Task RoomClosedAsync(long roomId, CancellationToken cancellationToken) =>
         hub.Clients.Group(RoomHub.GroupName(roomId)).SendAsync("RoomClosed", new { roomId }, cancellationToken);
+
+    public Task SkipProgressAsync(long roomId, int votes, int required, CancellationToken cancellationToken) =>
+        hub.Clients.Group(RoomHub.GroupName(roomId)).SendAsync("SkipProgress", new { votes, required, skipped = false }, cancellationToken);
+
+    public Task MemberRemovedAsync(long roomId, long userId, string reason, CancellationToken cancellationToken) =>
+        hub.Clients.User(userId.ToString(System.Globalization.CultureInfo.InvariantCulture)).SendAsync("RemovedFromRoom", new { roomId, reason }, cancellationToken);
 }

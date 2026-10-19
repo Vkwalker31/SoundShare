@@ -127,6 +127,7 @@ public sealed class RoomService(
         var until = request.DurationMinutes is { } minutes ? now.AddMinutes(minutes) : new DateTime(9999, 12, 31, 0, 0, 0, DateTimeKind.Utc);
         target.Ban(now, until);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        await notifier.MemberRemovedAsync(roomId, target.UserId, "banned", cancellationToken);
         await notifier.QueueChangedAsync(roomId, cancellationToken);
     }
 

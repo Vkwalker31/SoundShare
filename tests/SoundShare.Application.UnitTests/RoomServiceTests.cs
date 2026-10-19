@@ -230,6 +230,7 @@ public class RoomServiceTests
 
         target.IsActive.ShouldBeFalse();
         target.BannedUntil.ShouldBe(TestClock.Now.AddMinutes(60));
+        await _notifier.Received(1).MemberRemovedAsync(RoomId, 8, "banned", Arg.Any<CancellationToken>());
     }
 
     [Fact]
