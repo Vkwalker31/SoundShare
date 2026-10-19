@@ -10,7 +10,7 @@ namespace SoundShare.WebApi.Errors;
 
 internal sealed partial class ApiExceptionHandler(IProblemDetailsService problemDetails, ILogger<ApiExceptionHandler> logger) : IExceptionHandler
 {
-    private static readonly HashSet<int> UnavailableCodes = [1033, 1034, 1089, 3113, 3114, 12170, 12514, 12528, 12537, 12541, 12543, 50000];
+    private static readonly HashSet<int> UnavailableCodes = [1033, 1034, 1089, 3113, 3114, 12170, 12514, 12528, 12537, 12541, 12543, 50000, 50201];
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {

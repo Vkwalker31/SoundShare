@@ -33,6 +33,11 @@ else
         <button class="btn ghost" data-testid="leave-room" @onclick="LeaveAsync">Выйти из комнаты</button>
     </div>
 
+    @if (_offline)
+    {
+        <p class="banner" role="status" data-testid="offline">Нет соединения. Переподключаемся…</p>
+    }
+
     @if (_error is not null)
     {
         <p class="error" role="alert" data-testid="room-action-error">@_error</p>
@@ -74,7 +79,7 @@ else
         </section>
 
         <section class="card">
-            <h2>Очередь</h2>
+            <h2>Очередь <small class="muted" data-testid="queue-version">v@_queue.Version</small></h2>
             @if (_queue.Items.Count == 0)
             {
                 <p class="muted empty" data-testid="queue-empty">Очередь пуста.</p>
@@ -155,6 +160,7 @@ else
     private string? _error;
     private string? _fatal;
     private bool _videoEnabled;
+    private bool _offline;
     private TimeSpan _clockOffset;
     private HubConnection? _hub;
     private PeriodicTimer? _timer;
@@ -208,7 +214,22 @@ else
             _fatal = "Комната закрыта.";
             StateHasChanged();
         }));
-        _hub.Reconnected += _ => _hub.InvokeAsync("JoinRoom", RoomId);
+        _hub.Reconnecting += _ => InvokeAsync(() =>
+        {
+            _offline = true;
+            StateHasChanged();
+        });
+        _hub.Reconnected += async _ =>
+        {
+            await _hub.InvokeAsync("JoinRoom", RoomId);
+            _offline = false;
+            await RefreshAsync(resetSkip: true);
+        };
+        _hub.Closed += _ => InvokeAsync(() =>
+        {
+            _offline = true;
+            StateHasChanged();
+        });
         try
         {
             await _hub.StartAsync();

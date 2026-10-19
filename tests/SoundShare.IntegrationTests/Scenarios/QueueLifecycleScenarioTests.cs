@@ -38,6 +38,10 @@ public class QueueLifecycleScenarioTests(SoundShareFixture fixture)
         result.Score.ShouldBe(-5);
         result.Status.ShouldBe("AutoRemoved");
         (await owner.GetQueueAsync(room.Id)).Items.ShouldNotContain(i => i.Id == item.Id);
+        var audited = await fixture.ScalarOwnerSqlAsync(
+            "SELECT COUNT(*) FROM audit_logs WHERE source = 'DOMAIN' AND action = 'Queue.AutoRemoved' AND entity_id = :id",
+            ("id", item.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        Convert.ToInt32(audited, System.Globalization.CultureInfo.InvariantCulture).ShouldBe(1);
     }
 
     [Fact]

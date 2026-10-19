@@ -86,6 +86,21 @@ public sealed class SoundShareFixture : IAsyncLifetime
         return await command.ExecuteNonQueryAsync();
     }
 
+    public async Task<object?> ScalarOwnerSqlAsync(string sql, params (string Name, object Value)[] parameters)
+    {
+        await using var connection = new OracleConnection(OwnerConnectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.BindByName = true;
+        command.CommandText = sql;
+        foreach (var (name, value) in parameters)
+        {
+            command.Parameters.Add(new OracleParameter(name, value));
+        }
+
+        return await command.ExecuteScalarAsync();
+    }
+
     private async Task ExecAsync(string script)
     {
         var result = await _oracle.ExecAsync(["bash", "-c", "export NLS_LANG=AMERICAN_AMERICA.AL32UTF8; " + script]);

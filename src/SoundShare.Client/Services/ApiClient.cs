@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.JSInterop;
 
 namespace SoundShare.Client.Services;
 
@@ -10,14 +11,17 @@ public sealed class ApiException(HttpStatusCode status, string message) : Except
     public HttpStatusCode Status { get; } = status;
 }
 
-public sealed class ApiClient(HttpClient http, AuthSession session)
+public sealed class ApiClient(HttpClient http, AuthSession session, IJSRuntime js)
 {
+    private const string SessionFlag = "soundshare.session";
+
     public async Task LoginAsync(string username, string password)
     {
         using var response = await http.PostAsJsonAsync("api/auth/login", new { username, password });
         await EnsureSuccessAsync(response);
         var token = await response.Content.ReadFromJsonAsync<TokenResponse>();
         session.SignIn(token!.AccessToken);
+        await SetSessionFlagAsync(true);
     }
 
     public async Task RegisterAsync(string username, string email, string password)
@@ -28,11 +32,17 @@ public sealed class ApiClient(HttpClient http, AuthSession session)
 
     public async Task<bool> TryRestoreSessionAsync()
     {
+        if (!await HasSessionFlagAsync())
+        {
+            return false;
+        }
+
         try
         {
             using var response = await http.PostAsync("api/auth/refresh", null);
             if (!response.IsSuccessStatusCode)
             {
+                await SetSessionFlagAsync(false);
                 return false;
             }
 
@@ -55,6 +65,37 @@ public sealed class ApiClient(HttpClient http, AuthSession session)
         finally
         {
             session.SignOut();
+            await SetSessionFlagAsync(false);
+        }
+    }
+
+    private async Task<bool> HasSessionFlagAsync()
+    {
+        try
+        {
+            return await js.InvokeAsync<string?>("localStorage.getItem", SessionFlag) == "1";
+        }
+        catch (JSException)
+        {
+            return true;
+        }
+    }
+
+    private async Task SetSessionFlagAsync(bool value)
+    {
+        try
+        {
+            if (value)
+            {
+                await js.InvokeVoidAsync("localStorage.setItem", SessionFlag, "1");
+            }
+            else
+            {
+                await js.InvokeVoidAsync("localStorage.removeItem", SessionFlag);
+            }
+        }
+        catch (JSException)
+        {
         }
     }
 

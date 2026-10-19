@@ -151,6 +151,27 @@ public class SecurityScenarioTests(SoundShareFixture fixture)
     }
 
     [Fact]
+    public async Task AdminEndpoint_RegularUser_DenialIsAudited()
+    {
+        var admin = await fixture.RegisterAdminAsync();
+        var user = await fixture.RegisterAsync();
+
+        (await user.Client.GetAsync("/api/admin/users")).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+
+        AuditLogDto? entry = null;
+        for (var attempt = 0; attempt < 30 && entry is null; attempt++)
+        {
+            await Task.Delay(500);
+            var page = await admin.Client.GetFromJsonAsync<AuditPageDto>($"/api/admin/audit-logs?userId={user.Id}");
+            entry = page!.Items.FirstOrDefault(e => e.StatusCode == 403);
+        }
+
+        entry.ShouldNotBeNull();
+        entry.Path.ShouldBe("/api/admin/users");
+        entry.Action.ShouldEndWith("Failed");
+    }
+
+    [Fact]
     public async Task Response_ContainsCorrelationIdHeader()
     {
         using var client = fixture.CreateClient();

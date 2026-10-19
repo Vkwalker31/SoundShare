@@ -102,8 +102,8 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
-app.UseAuthorization();
 app.UseMiddleware<AuditMiddleware>();
+app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();

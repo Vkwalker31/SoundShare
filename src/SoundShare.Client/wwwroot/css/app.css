@@ -84,6 +84,7 @@ form.inline label { margin-bottom: 0; }
 .badge.pin { color: var(--pin); border-color: var(--pin); }
 
 .muted { color: var(--muted); }
+.banner { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--pin); color: var(--pin); background: var(--surface); }
 .error { color: var(--danger); }
 
 .list { list-style: none; margin: 0; padding: 0; }
