@@ -12,8 +12,8 @@
 | Покрыто тест-кейсами | 50 (53 %) |
 | Покрыто автотестами | 90 (95 %) |
 | Требований приоритета M с тест-кейсами | 32 / 32 |
-| Проверено | 86 |
-| С открытым дефектом | 4 |
+| Проверено | 88 |
+| С открытым дефектом | 2 |
 | Не проверено | 0 |
 | Не покрыто тестами | 4 |
 
@@ -40,16 +40,16 @@
 
 | Группа требований | Дефектов | Риск |
 |---|---:|---|
-| Документация | 5 | Высокий |
+| Документация | 6 | Высокий |
 | FR-AUD | 5 | Высокий |
 | BR-ROOM | 4 | Высокий |
-| FR-USR | 4 | Высокий |
 | BR-VOTE | 4 | Высокий |
+| FR-USR | 4 | Высокий |
 | NFR-SEC | 3 | Средний |
 | NFR-REL | 2 | Средний |
-| FR-ROOM | 2 | Средний |
 | FR-AUTH | 2 | Средний |
 | FR-RT | 2 | Средний |
+| FR-ROOM | 2 | Средний |
 | NFR-PERF | 1 | Низкий |
 | NFR-SCALE | 1 | Низкий |
 | FR-INT | 1 | Низкий |
@@ -138,7 +138,7 @@
 | BR-VOTE-04 | — | TC-21 | QueueRulesTests, QueueServiceTests, QueueLifecycleScenarioTests, constraints_test.sql | — | Проверено |
 | BR-VOTE-05 | — | TC-24 | QueueRulesTests, QueueServiceTests, QueueLifecycleScenarioTests, constraints_test.sql | DEF-015 | Проверено |
 | BR-VOTE-06 | — | — | QueueRulesTests, QueueServiceTests, QueueLifecycleScenarioTests, constraints_test.sql | — | Проверено |
-| BR-VOTE-07 | — | TC-26 | QueueRulesTests, QueueServiceTests, QueueLifecycleScenarioTests, constraints_test.sql | DEF-003, DEF-019 | Есть открытый дефект |
+| BR-VOTE-07 | — | TC-26 | QueueRulesTests, QueueServiceTests, QueueLifecycleScenarioTests, constraints_test.sql | DEF-003, DEF-019 | Проверено |
 | BR-VOTE-08 | — | TC-25 | QueueRulesTests, QueueServiceTests, QueueLifecycleScenarioTests, constraints_test.sql | DEF-003 | Проверено |
 | BR-VOTE-09 | — | — | QueueRulesTests, QueueServiceTests, QueueLifecycleScenarioTests, constraints_test.sql | — | Проверено |
 | BR-TRK-01 | — | — | TitleParserTests, CatalogServiceTests, DatabaseConstraintTests.Tracks_* | — | Проверено |
@@ -154,5 +154,5 @@
 | BR-ROOM-05 | — | — | RoomMemberTests, RoomServiceTests, QueueLifecycleScenarioTests | — | Проверено |
 | BR-ROOM-06 | — | TC-20 | RoomMemberTests, RoomServiceTests, QueueLifecycleScenarioTests | — | Проверено |
 | BR-ROOM-07 | — | — | RoomMemberTests, RoomServiceTests, QueueLifecycleScenarioTests | — | Проверено |
-| BR-ROOM-08 | — | TC-19 | RoomMemberTests, RoomServiceTests, QueueLifecycleScenarioTests | DEF-020 | Есть открытый дефект |
+| BR-ROOM-08 | — | TC-19 | RoomMemberTests, RoomServiceTests, QueueLifecycleScenarioTests | DEF-020 | Проверено |
 | BR-ACC-01 | — | TC-15 | UserAdminServiceTests.DeleteOwnAccount_*, AuthScenarioTests.DeleteOwnAccount_* | DEF-016 | Есть открытый дефект |
