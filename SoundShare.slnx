@@ -6,6 +6,7 @@
     <Project Path="src/SoundShare.WebApi/SoundShare.WebApi.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/SoundShare.Application.UnitTests/SoundShare.Application.UnitTests.csproj" />
     <Project Path="tests/SoundShare.Domain.UnitTests/SoundShare.Domain.UnitTests.csproj" />
   </Folder>
 </Solution>
