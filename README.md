@@ -2,7 +2,7 @@
 
 Сервис совместного прослушивания музыки: участники комнаты слушают одну очередь синхронно, добавляют треки и голосуют, а очередь перестраивается в реальном времени.
 
-> Статус: в разработке. Готовы ТЗ, модель данных, схема Oracle с демо-данными и тестами ограничений, REST API с SignalR-хабом и юнит-тесты домена; в работе — тесты Application, интеграционные тесты и клиент Blazor.
+> Статус: готова версия для защиты — схема Oracle (V001–V009), REST API с SignalR, клиент Blazor WebAssembly, 274 автотеста (покрытие 86,9 %), UI-тесты Playwright, коллекция Postman, нагрузочные тесты NBomber.
 
 ## Назначение и пользователи
 
@@ -112,26 +112,42 @@ docker compose --profile compat up -d oracle-xe21
 
 ```
 db/
-  bootstrap/    создание пользователей БД
-  migrations/   версионированные скрипты схемы V001–V006
-  seed/         демо-данные для сценария защиты
-  tests/        тесты ограничений схемы (PASS/FAIL)
+  bootstrap/      создание пользователей БД
+  migrations/     версионированные скрипты схемы V001–V009 (таблицы, ключи, индексы, права, триггеры аудита)
+  seed/           демо-данные (demo.sql) и объёмные данные для замеров (volume/)
+  queries/        DML, SELECT и запросы журнала (этапы 4–6)
+  explain/        замеры планов выполнения до и после индексов (этап 7)
+  tests/          тесты ограничений схемы, SQL-проверки прогона тест-кейсов
   reset.sql, apply_migrations.sql
-docs/           ТЗ, модель данных, требования, тестовая документация
+docs/             ТЗ, модель данных, отчёты этапов, требования, тестовая документация
 src/
   SoundShare.Domain           сущности и бизнес-правила
   SoundShare.Application      сервисы сценариев, DTO, валидация, интерфейсы репозиториев
   SoundShare.Infrastructure   EF Core + Oracle, JWT, YouTube, аудит, фоновое воспроизведение
-  SoundShare.WebApi           контроллеры, middleware, SignalR-хаб
+  SoundShare.WebApi           контроллеры, middleware, SignalR-хаб; раздаёт клиент
+  SoundShare.Client           клиент Blazor WebAssembly
 tests/
-  SoundShare.Domain.UnitTests
+  SoundShare.Domain.UnitTests        модульные тесты домена
+  SoundShare.Application.UnitTests   модульные тесты сервисов с моками NSubstitute
+  SoundShare.IntegrationTests        Oracle в Testcontainers, WireMock, сценарии через HTTP
+  SoundShare.UiTests                 Playwright, Page Object, Chrome/Edge/Firefox
+  SoundShare.LoadTests               NBomber
+  postman/                           коллекция Postman и окружение
 ```
+
+## Тестирование
+
+```bash
+dotnet test tests/SoundShare.Domain.UnitTests
+dotnet test tests/SoundShare.Application.UnitTests
+dotnet test tests/SoundShare.IntegrationTests
+```
+
+Интеграционным тестам нужен Docker. UI-тестам, коллекции Postman и нагрузочным тестам нужен запущенный API на демо-данных — команды запуска есть в соответствующих отчётах (раздел «Документация»).
 
 ## Документация
 
-- [Техническое задание](docs/01-technical-specification.md)
-- [Модель данных](docs/02-data-model.md)
-- [Дорожная карта](docs/00-roadmap.md)
-- [Контракт REST API](docs/api/endpoints.md)
-- Требования: [варианты использования](docs/requirements/use-cases.md) · [диаграммы состояний](docs/requirements/state-diagrams.md) · [матрица верификации](docs/requirements/verification-matrix.md)
-- Тестирование: [план](docs/testing/test-plan.md) · [чек-лист](docs/testing/checklist.md) · [тест-кейсы](docs/testing/test-cases.md) · [дефекты](ISSUES.md)
+- [Дорожная карта и статус](docs/00-roadmap.md) · [Техническое задание](docs/01-technical-specification.md) · [Модель данных](docs/02-data-model.md) · [Контракт REST API](docs/api/endpoints.md)
+- Этапы БД: [DML](docs/04-dml.md) · [SELECT](docs/05-select.md) · [журнал и макеты](docs/06-audit-and-ui.md) · [индексы](docs/07-index-report.md) · [руководство пользователя](docs/08-user-manual.md)
+- Требования: [варианты использования](docs/requirements/use-cases.md) · [диаграммы состояний](docs/requirements/state-diagrams.md) · [матрица верификации](docs/requirements/verification-matrix.md) · [дефекты](ISSUES.md)
+- Тестирование: [план](docs/testing/test-plan.md) · [чек-лист](docs/testing/checklist.md) · [тест-кейсы](docs/testing/test-cases.md) · [прогон тест-кейсов](docs/testing/test-run-2026-10-20.md) · [автотесты](docs/testing/autotests.md) · [API (Postman)](docs/testing/api-tests.md) · [безопасность](docs/testing/security-checks.md) · [UI-тесты](docs/testing/ui-tests.md) · [вёрстка и браузеры](docs/testing/ui-compat.md) · [план нагрузки](docs/testing/load-test-plan.md) · [отчёт о нагрузке](docs/testing/load-test-report.md) · [статический анализ](docs/testing/lint-report.md) · [трассируемость](docs/testing/traceability-matrix.md)
