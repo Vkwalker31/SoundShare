@@ -49,8 +49,16 @@ LoadSimulation[] Steady(int rate, int seconds) => [Simulation.Inject(rate, TimeS
 LoadSimulation[] Steps(params int[] rates) =>
     rates.Select(r => Simulation.Inject(r, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30))).ToArray();
 
+var rate = mode.StartsWith("rate-", StringComparison.Ordinal) ? int.Parse(mode[5..], System.Globalization.CultureInfo.InvariantCulture) : 0;
+
 ScenarioProps[] scenarios = mode switch
 {
+    _ when rate > 0 =>
+    [
+        readQueue.WithLoadSimulations(Steady(rate * 7 / 10, 20)),
+        vote.WithLoadSimulations(Steady(rate * 2 / 10, 20)),
+        listRooms.WithLoadSimulations(Steady(rate / 10, 20)),
+    ],
     "baseline" =>
     [
         readQueue.WithLoadSimulations(Simulation.KeepConstant(1, TimeSpan.FromSeconds(30))),

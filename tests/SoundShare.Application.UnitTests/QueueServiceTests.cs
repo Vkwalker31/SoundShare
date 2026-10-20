@@ -126,6 +126,7 @@ public class QueueServiceTests
         result.Status.ShouldBe("AutoRemoved");
         item.Status.ShouldBe(QueueItemStatus.AutoRemoved);
         await _queues.Received(1).LockItemAsync(1, Arg.Any<CancellationToken>());
+        await _queues.Received(1).IncrementVersionAsync(_queue.Id, Arg.Any<CancellationToken>());
         await _notifier.Received(1).QueueChangedAsync(RoomId, Arg.Any<CancellationToken>());
     }
 

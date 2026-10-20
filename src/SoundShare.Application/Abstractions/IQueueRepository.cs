@@ -16,6 +16,8 @@ public interface IQueueRepository
 
     Task LockItemAsync(long itemId, CancellationToken cancellationToken);
 
+    Task IncrementVersionAsync(long playlistId, CancellationToken cancellationToken);
+
     Task<QueueItem?> GetPlayingAsync(long playlistId, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<QueueItemView>> GetActiveItemsAsync(long playlistId, CancellationToken cancellationToken);

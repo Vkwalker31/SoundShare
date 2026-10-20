@@ -127,8 +127,8 @@ public sealed class QueueService(
                 await unitOfWork.SaveChangesAsync(ct);
                 var score = await queues.GetScoreAsync(item.Id, ct);
                 item.TryAutoRemove(score);
-                playlist.IncrementVersion();
                 await unitOfWork.SaveChangesAsync(ct);
+                await queues.IncrementVersionAsync(playlist.Id, ct);
                 return new VoteResultDto(item.Id, score, item.Status.ToString());
             },
             cancellationToken);

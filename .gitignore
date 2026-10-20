@@ -15,3 +15,5 @@ coverage/
 playwright-report/
 
 docs/Kulikov_2019.pdf
+
+tests/SoundShare.LoadTests/reports/

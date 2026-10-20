@@ -120,6 +120,9 @@ internal sealed class QueueRepository(SoundShareDbContext db) : IQueueRepository
     public Task<QueueItem?> GetItemAsync(long itemId, CancellationToken cancellationToken) =>
         db.QueueItems.FirstOrDefaultAsync(i => i.Id == itemId, cancellationToken);
 
+    public Task IncrementVersionAsync(long playlistId, CancellationToken cancellationToken) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"UPDATE SOUNDSHARE.PLAYLISTS SET QUEUE_VERSION = QUEUE_VERSION + 1 WHERE ID = {playlistId}", cancellationToken);
+
     public Task LockItemAsync(long itemId, CancellationToken cancellationToken) =>
         db.Database.ExecuteSqlInterpolatedAsync($"SELECT ID FROM SOUNDSHARE.PLAYLIST_TRACKS WHERE ID = {itemId} FOR UPDATE", cancellationToken);
 

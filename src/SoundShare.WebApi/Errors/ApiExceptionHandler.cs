@@ -25,7 +25,7 @@ internal sealed partial class ApiExceptionHandler(IProblemDetailsService problem
             Status = status,
             Title = title,
             Type = type,
-            Detail = status < 500 ? exception.Message : null,
+            Detail = status >= 500 ? null : exception is DbUpdateException ? "The data was changed by another request. Reload and try again." : exception.Message,
         };
         problem.Extensions["traceId"] = httpContext.TraceIdentifier;
 
