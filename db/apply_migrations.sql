@@ -22,6 +22,8 @@ PROMPT V007__audit_triggers
 @@migrations/V007__audit_triggers.sql
 PROMPT V008__queue_audit_trigger
 @@migrations/V008__queue_audit_trigger.sql
+PROMPT V009__performance_indexes
+@@migrations/V009__performance_indexes.sql
 PROMPT All migrations applied
 
 EXIT

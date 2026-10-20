@@ -1,0 +1,143 @@
+===== Q1. Активные позиции очереди комнаты =====
+Plan hash value: 1233149554
+
+------------------------------------------------------------------------------------------------
+| Id  | Operation			    | Name			  | Rows  | Cost (%CPU)|
+------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT		    |				  |    80 |   163   (0)|
+|*  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| PLAYLIST_TRACKS		  |    80 |   163   (0)|
+|*  2 |   INDEX RANGE SCAN		    | IX_PLAYLIST_TRACKS_PLAYLIST |   160 |	3   (0)|
+------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("PT"."STATUS"='PLAYING' OR "PT"."STATUS"='QUEUED')
+   2 - access("PT"."PLAYLIST_ID"=TO_NUMBER(:P))
+===== Q2. Число участников комнаты онлайн =====
+Plan hash value: 194652688
+
+------------------------------------------------------------------------------------
+| Id  | Operation			    | Name	      | Rows  | Cost (%CPU)|
+------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT		    |		      |     6 |    18	(0)|
+|*  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| ROOM_MEMBERS    |     6 |    18	(0)|
+|*  2 |   INDEX RANGE SCAN		    | PK_ROOM_MEMBERS |    16 |     2	(0)|
+------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("LEFT_AT" IS NULL)
+   2 - access("ROOM_ID"=TO_NUMBER(:R))
+===== Q3. Журнал: последние 50 записей по действию (keyset) =====
+Plan hash value: 4242740183
+
+----------------------------------------------------------------------------
+| Id  | Operation		      | Name	      | Rows  | Cost (%CPU)|
+----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT	      | 	      |    50 |     8	(0)|
+|*  1 |  COUNT STOPKEY		      | 	      |       | 	   |
+|   2 |   VIEW			      | 	      |    50 |     8	(0)|
+|*  3 |    TABLE ACCESS BY INDEX ROWID| AUDIT_LOGS    | 71429 |     8	(0)|
+|   4 |     INDEX FULL SCAN DESCENDING| PK_AUDIT_LOGS |   351 |     3	(0)|
+----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter(ROWNUM<=50)
+   3 - filter("ACTION"='Admin.BlockUser')
+===== Q4. Журнал за последний час =====
+Plan hash value: 1271048999
+
+-------------------------------------------------------------
+| Id  | Operation	  | Name       | Rows  | Cost (%CPU)|
+-------------------------------------------------------------
+|   0 | SELECT STATEMENT  |	       |   667 |  1656	 (2)|
+|*  1 |  TABLE ACCESS FULL| AUDIT_LOGS |   667 |  1656	 (2)|
+-------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("CREATED_AT">=SYS_EXTRACT_UTC(SYSTIMESTAMP(6))-INTERVAL'+0
+	      0 01:00:00' DAY(2) TO SECOND(0))
+===== Q5. Поиск трека по началу названия =====
+Plan hash value: 3559478959
+
+---------------------------------------------------------
+| Id  | Operation	  | Name   | Rows  | Cost (%CPU)|
+---------------------------------------------------------
+|   0 | SELECT STATEMENT  |	   |  2500 |   136   (0)|
+|*  1 |  TABLE ACCESS FULL| TRACKS |  2500 |   136   (0)|
+---------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter(UPPER("TITLE") LIKE 'TRACK 4999%')
+===== Q6. Активные треки пользователя в очереди (лимит 3) =====
+Plan hash value: 3883992926
+
+------------------------------------------------------------------------------------------------
+| Id  | Operation			    | Name			  | Rows  | Cost (%CPU)|
+------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT		    |				  |	1 |	6   (0)|
+|*  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| PLAYLIST_TRACKS		  |	1 |	6   (0)|
+|   2 |   BITMAP CONVERSION TO ROWIDS	    |				  |	  |	       |
+|   3 |    BITMAP AND			    |				  |	  |	       |
+|   4 |     BITMAP CONVERSION FROM ROWIDS   |				  |	  |	       |
+|*  5 |      INDEX RANGE SCAN		    | IX_PLAYLIST_TRACKS_ADDED_BY |    32 |	3   (0)|
+|   6 |     BITMAP CONVERSION FROM ROWIDS   |				  |	  |	       |
+|*  7 |      INDEX RANGE SCAN		    | IX_PLAYLIST_TRACKS_PLAYLIST |    32 |	3   (0)|
+------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("STATUS"='PLAYING' OR "STATUS"='QUEUED')
+   5 - access("ADDED_BY_ID"=TO_NUMBER(:U))
+   7 - access("PLAYLIST_ID"=TO_NUMBER(:P))
+===== Q7. Рейтинг позиции (сумма голосов) =====
+Plan hash value: 3565054070
+
+-----------------------------------------------------------------------------------
+| Id  | Operation			    | Name	     | Rows  | Cost (%CPU)|
+-----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT		    |		     |	   3 |	   4   (0)|
+|   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TRACK_VOTES    |	   3 |	   4   (0)|
+|*  2 |   INDEX RANGE SCAN		    | PK_TRACK_VOTES |	   3 |	   3   (0)|
+-----------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("PLAYLIST_TRACK_ID"=TO_NUMBER(:I))
+===== Q8. Закончившиеся треки для автоперехода =====
+Plan hash value: 2038498686
+
+-------------------------------------------------------------------
+| Id  | Operation	   | Name	     | Rows  | Cost (%CPU)|
+-------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |		     |	4000 |	 821   (1)|
+|*  1 |  HASH JOIN	   |		     |	4000 |	 821   (1)|
+|   2 |   TABLE ACCESS FULL| TRACKS	     | 50000 |	 136   (0)|
+|*  3 |   TABLE ACCESS FULL| PLAYLIST_TRACKS | 80000 |	 684   (1)|
+-------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - access("T"."ID"="PT"."TRACK_ID")
+       filter(INTERNAL_FUNCTION("PT"."STARTED_AT")+NUMTODSINTERVAL("T"."
+	      DURATION_SEC",'SECOND')<=SYS_EXTRACT_UTC(SYSTIMESTAMP(6)))
+   3 - filter("PT"."STATUS"='PLAYING')
+RESULT|Q1|0.33|164
+RESULT|Q2|0.00|18
+RESULT|Q3|0.33|12
+RESULT|Q4|22.33|5991
+RESULT|Q5|8.33|489
+RESULT|Q6|0.33|39
+RESULT|Q7|0.00|4
+RESULT|Q8|14.33|2949

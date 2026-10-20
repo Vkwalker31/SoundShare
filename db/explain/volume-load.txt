@@ -1,0 +1,19 @@
+Volume data loaded
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:01:53.08
+
+TBL		       CNT
+--------------- ----------
+USERS		     20000
+TRACKS		     50000
+ROOMS		      2000
+ROOM_MEMBERS	     32000
+PLAYLIST_TRACKS     320000
+TRACK_VOTES	   1000000
+AUDIT_LOGS	    500000
+
+7 rows selected.
+
+Elapsed: 00:00:00.05
