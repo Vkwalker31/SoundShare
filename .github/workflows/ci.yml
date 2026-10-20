@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore SoundShare.slnx
+
+      - name: Build with analyzers (warnings are errors)
+        run: dotnet build SoundShare.slnx --no-restore -c Release
+
+      - name: Code style (dotnet format)
+        run: dotnet format SoundShare.slnx --verify-no-changes --no-restore
+
+      - name: Unit tests
+        run: >
+          dotnet test tests/SoundShare.Domain.UnitTests --no-build -c Release
+          --settings coverage.runsettings --results-directory TestResults --logger trx
+
+      - name: Unit tests (Application)
+        run: >
+          dotnet test tests/SoundShare.Application.UnitTests --no-build -c Release
+          --settings coverage.runsettings --results-directory TestResults --logger trx
+
+      - name: Integration and scenario tests (Oracle in Testcontainers, WireMock)
+        run: >
+          dotnet test tests/SoundShare.IntegrationTests --no-build -c Release
+          --settings coverage.runsettings --results-directory TestResults --logger trx
+
+      - name: Coverage report
+        if: always()
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coverage -reporttypes:"Html;TextSummary;MarkdownSummaryGithub"
+          cat coverage/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Quality gate (line coverage >= 70 %)
+        run: |
+          line=$(grep -m1 "Line coverage" coverage/Summary.txt | grep -o "[0-9.]*" | head -1)
+          echo "Line coverage: ${line}%"
+          awk -v c="$line" 'BEGIN { exit (c >= 70) ? 0 : 1 }'
+
+      - name: Upload test results and coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-and-coverage
+          path: |
+            TestResults/**/*.trx
+            coverage/
