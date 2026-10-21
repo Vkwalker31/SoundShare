@@ -508,15 +508,6 @@ HTTP-поля nullable, потому что у записей `SOURCE = 'DOMAIN'
 
 Для каждого функционального индекса Oracle создаёт скрытую виртуальную колонку `SYS_NC000nn$`; её имя появляется в тексте ошибки `ORA-00001`.
 
----|---|---|
-| `UX_USERS_USERNAME_CI` | `UPPER(USERNAME)` | Уникальность без учёта регистра |
-| `UX_USERS_EMAIL_CI` | `UPPER(EMAIL)` | — // — |
-| `UX_ARTISTS_NAME_CI` | `UPPER(NAME)` | — // — |
-| `UX_RM_ACTIVE_USER` | `CASE WHEN LEFT_AT IS NULL THEN USER_ID END` | Одна активная комната на пользователя (BR-ROOM-06) |
-| `UX_RM_ACTIVE_OWNER` | `CASE WHEN LEFT_AT IS NULL AND MEMBER_ROLE = 'OWNER' THEN ROOM_ID END` | Не более одного активного Owner (DM-01) |
-| `UX_PT_ONE_PLAYING` | `CASE WHEN STATUS = 'PLAYING' THEN PLAYLIST_ID END` | Одна играющая позиция на очередь (DM-02) |
-| `UX_PT_POSITION` | двухколоночный, оба выражения `NULL` при `POSITION IS NULL` | Уникальная позиция в личном плейлисте (DM-12) |
-
 ---
 
 ## 7. Особенности Oracle и EF Core, учтённые в модели
