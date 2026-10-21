@@ -30,6 +30,7 @@ public class CompatibilityTests(UiFixture fixture) : UiTestBase(fixture)
                 IsMobile = mobile,
                 HasTouch = mobile,
             });
+            await context.AddInitScriptAsync("localStorage.setItem('soundshare.video', 'off')");
             var page = await context.NewPageAsync();
             var consoleErrors = new List<string>();
             var failed = new List<string>();

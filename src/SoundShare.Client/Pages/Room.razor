@@ -4,6 +4,7 @@
 @inject ApiClient Api
 @inject AuthSession Session
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <PageTitle>@(_room?.Name ?? "Комната") — SoundShare</PageTitle>
 
@@ -69,7 +70,7 @@ else
                     {
                         <button class="btn danger" data-testid="skip-now" @onclick="SkipAsync">Пропустить сейчас</button>
                     }
-                    <label class="check"><input type="checkbox" @bind="_videoEnabled" /> Видео</label>
+                    <label class="check"><input type="checkbox" data-testid="video-toggle" @bind="_videoEnabled" @bind:after="ResetVideo" /> Видео</label>
                 </div>
             }
             else
@@ -159,13 +160,20 @@ else
     private string _query = string.Empty;
     private string? _error;
     private string? _fatal;
-    private bool _videoEnabled;
+    private bool _videoEnabled = true;
+    private long? _videoItemId;
+    private string _videoSrc = string.Empty;
     private bool _offline;
     private TimeSpan _clockOffset;
     private HubConnection? _hub;
     private PeriodicTimer? _timer;
 
+    private const string VideoSetting = "soundshare.video";
+
     private bool IsModerator => _room?.MyRole is "Owner" or "Moderator";
+
+    protected override async Task OnInitializedAsync() =>
+        _videoEnabled = await JS.InvokeAsync<string?>("localStorage.getItem", VideoSetting) != "off";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -355,8 +363,22 @@ else
     private string ProgressPercent(PlayingDto playing) =>
         (Elapsed(playing) * 100.0 / Math.Max(playing.Track.DurationSec, 1)).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
 
-    private string VideoUrl(PlayingDto playing) =>
-        $"https://www.youtube-nocookie.com/embed/{playing.Track.ExternalSourceId}?autoplay=1&start={Elapsed(playing)}";
+    private string VideoUrl(PlayingDto playing)
+    {
+        if (_videoItemId != playing.ItemId)
+        {
+            _videoItemId = playing.ItemId;
+            _videoSrc = $"https://www.youtube-nocookie.com/embed/{playing.Track.ExternalSourceId}?autoplay=1&start={Elapsed(playing)}";
+        }
+
+        return _videoSrc;
+    }
+
+    private async Task ResetVideo()
+    {
+        _videoItemId = null;
+        await JS.InvokeVoidAsync("localStorage.setItem", VideoSetting, _videoEnabled ? "on" : "off");
+    }
 
     private static string Format(int seconds) => $"{seconds / 60}:{seconds % 60:00}";
 
